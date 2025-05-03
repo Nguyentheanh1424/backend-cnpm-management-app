@@ -1,0 +1,34 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Build output (nếu có)
+dist/
+build/
+
+# IDE/Editor files
+.idea/
+.vscode/
+*.sublime*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage reports (nếu có)
+coverage/
+
+.*  # Bỏ qua tất cả file bắt đầu bằng dấu chấm
+!.gitkeep  # Nhưng không bỏ qua .gitkeep
