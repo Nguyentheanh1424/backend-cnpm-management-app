@@ -30,5 +30,8 @@ Thumbs.db
 # Coverage reports (nếu có)
 coverage/
 
-.*  # Bỏ qua tất cả file bắt đầu bằng dấu chấm
-!.gitkeep  # Nhưng không bỏ qua .gitkeep
+# Bỏ qua tất cả file bắt đầu bằng dấu chấm
+.*
+
+# Nhưng không bỏ qua .gitkeep
+!.gitkeep
