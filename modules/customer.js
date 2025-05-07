@@ -5,6 +5,11 @@ const customerSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     email: { type: String},
     rate: { type: Number,default:0},
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users',
+        required: true
+    },
     creater: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Users',
