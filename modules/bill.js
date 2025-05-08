@@ -11,6 +11,7 @@ const Bill_Schema = new mongoose.Schema({
         required: true
     },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customers'},
+    orderDate: { type: Date, default: Date.now },
     totalAmount: { type: String, required: true },
     items: [
         {
@@ -25,6 +26,7 @@ const Bill_Schema = new mongoose.Schema({
     discount:{type: String},
     vat: { type: String},
     paymentMethod: {type:String},
+    notes: String
 });
 
 const Bills = mongoose.model('Bills', Bill_Schema,'Bills');
