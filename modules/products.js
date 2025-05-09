@@ -13,7 +13,7 @@ const productSchema = new mongoose.Schema({
     price: { type: String, required: true},
     stock_in_shelf: { type: Number, default: 0},
     reorderLevel: { type: mongoose.Schema.Types.ObjectId, ref: 'Suppliers', required: true },
-    purchaseData: { type: Date, default: Date.now},
+    purchaseDate: { type: Date, default: Date.now},
     location: {type: String},
     stock_in_Warehouse: { type: Number, default: 0},
     unit: { type: String, default: 'pcs'},
