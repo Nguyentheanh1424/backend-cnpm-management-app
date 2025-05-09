@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "Admin",
     },
-    id_owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' }, // Bỏ required
+    id_owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
     resetCode: String,
     resetCodeExpire: Date,
     avatar: { type: String }

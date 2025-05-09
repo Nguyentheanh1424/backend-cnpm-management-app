@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
     name: { type: String},
-    phone: { type: String, required: true },
+    phone: { type: String, required: true }, // required = true trường này bắt buộc phải có giá trị khi tạo mới một khách hàng.
     email: { type: String},
     rate: { type: Number,default:0},
     owner: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId, // cho biết đây là một tham chiếu đến một document khác trong MongoDB
         ref: 'Users',
         required: true
     },
@@ -23,5 +23,5 @@ const customerSchema = new mongoose.Schema({
     firstPurchaseDate: { type: Date ,default:null},
 }, { timestamps: true });
 
-const Customer = mongoose.model('Customers', customerSchema,'Customers');
-module.exports = Customer;
+const Customer = mongoose.model('Customers', customerSchema,'Customers'); // Tạo model Customer từ schema customerSchema và ánh xạ nó với collection 'Customers' trong MongoDB
+module.exports = Customer; // Xuất model Customer để có thể sử dụng ở các tệp khác trong ứng dụng
