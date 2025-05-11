@@ -8,7 +8,6 @@ const logger = require('./config/logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
 // Cấu hình Swagger
 const swaggerOptions = {
     definition: {
