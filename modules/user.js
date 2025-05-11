@@ -1,33 +1,72 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    password: { type: String, default: null },
-    GoogleID: { type: String, default: null },
-    role: {
-        type: String,
-        default: "Admin",
-    },
-    id_owner: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' },
-    resetCode: String,
-    resetCodeExpire: Date,
-    avatar: { type: String }
-}, { timestamps: true });
+const { Schema, model, Types } = mongoose;
 
-// Middleware trước khi lưu tài liệu
+const userSchema = new Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+        },
+
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+
+        password: {
+            type: String,
+            default: null,
+        },
+
+        GoogleID: {
+            type: String,
+            default: null,
+        },
+
+        role: {
+            type: String,
+            default: "Admin",
+        },
+
+        id_owner: {
+            type: Types.ObjectId,
+            ref: 'User',
+        },
+
+        resetCode: {
+            type: String,
+        },
+
+        resetCodeExpire: {
+            type: Date,
+        },
+
+        avatar: {
+            type: String,
+        }
+    },
+    {
+        timestamps: true,
+    }
+);
+
 userSchema.pre('save', function (next) {
     if (!this.id_owner) {
         this.id_owner = this._id;
     }
-    // Gán avatar ngẫu nhiên từ DiceBear nếu chưa có
+
+    // Gán avatar ngẫu nhiên nếu chưa có avatar
     if (!this.avatar) {
-        const randomSeed = Math.random().toString(36).substring(2); // Tạo chuỗi ngẫu nhiên
+        // Tạo chuỗi ngẫu nhiên và tạo avatar từ chuỗi đó
+        const randomSeed = Math.random().toString(36).substring(2);
         this.avatar = `https://api.dicebear.com/6.x/adventurer/svg?seed=${randomSeed}`;
     }
-    next(); // Tiếp tục lưu tài liệu
+
+    next();
 });
 
-const User = mongoose.model('Users', userSchema, 'Users');
+const user = model('User', userSchema);
 
-module.exports = User;
+module.exports = user;
