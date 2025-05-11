@@ -1,20 +1,32 @@
 const mongoose = require('mongoose');
 
-const SuppliersSchema = new mongoose.Schema({
-    name: { type: String},
-    phone: { type: String, required: true },
-    email: { type: String},
+const history = new mongoose.Schema({
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Users',
+        ref: 'Users', // Tham chiếu đến người chủ
         required: true
     },
-    creater: {
+    employee: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Users',
         required: true
     },
-}, { timestamps: true });
-
-const Suppliers = mongoose.model("Suppliers", SuppliersSchema, "Suppliers");
-module.exports = Suppliers;
+    product: {
+        type: String,
+        required: true
+    },
+    action: {
+        type: String,
+        enum: ['create', 'update', 'delete'],
+        required: true
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now
+    },
+    details: {
+        type: String // Có thể lưu thêm thông tin mô tả về thay đổi
+    }
+});
+const History=mongoose.model('historys', history,'historys');
+module.exports = History;
