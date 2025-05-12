@@ -1,4 +1,5 @@
 const Message = require('../modules/Message');
+const messages = require("./chat");
 
 const saveMessageToDB = async (data)=>{
     const newMessage = new Message({
@@ -35,3 +36,18 @@ module.exports = (io) =>{
     })
 };
 
+module.exports.getMessages = async (req, res) =>{
+    const { user } = req.body;
+
+    try{
+        const messages = await Message.find({owner: user.id_owner})
+            .populate('sender')
+            .populate('owner')
+            .sort({createdAt: 1});
+        res.json(messages);
+    }
+    catch(err){
+        console.error('Error fetching messages:', err.message); // Ghi log lỗi vào console
+        res.status(500).json({ error: err.message }); // Chỉ trả về nội dung lỗi thay vì toàn bộ đối tượng lỗi
+    }
+};
