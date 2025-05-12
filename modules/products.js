@@ -28,7 +28,7 @@ const productSchema = new Schema(
             type: String,
         },
 
-        sku: {
+        sku: { // mã định danh sản phẩm
             type: String,
             required: true,
         },
