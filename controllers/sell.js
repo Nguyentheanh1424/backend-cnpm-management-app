@@ -58,3 +58,18 @@ const create_customer = async (req, res) => {
         return res.status(404).json({ message: "Error" });
     }
 };
+const history = async (req, res) => {
+
+};
+const get_history = async (req, res) => {
+
+};
+const get_history_customer = async (req, res) => {
+
+};
+const edit_customer = async (req, res) => {
+
+};
+const delete_customer = async (req, res) => {
+
+};
