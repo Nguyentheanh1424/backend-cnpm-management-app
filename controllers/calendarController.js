@@ -31,13 +31,79 @@ const createEvent = async (req, res) => {
 };
 
 const getEvent = async (req, res) => {
-    const userId = req.query.userId;
-    const events = await Events.find({id_owner: userId});
+    try{
+        const userId = req.query.userId;
+        const events = await Events.find({id_owner: userId});
 
+        const formattedEvents = events.map(event => ({
+            id: event._id,
+            task: event.task,
+            employee: event.employee,
+            start_time: event.start_time,
+            end_time: event.end_time,
+            id_owner: event.owner,
+            createdAt: event.start_time,
+        }));
 
+        res.json(formattedEvents);
+    }
+    catch(error){
+        console.error("Error getting event", error);
+        res.status(500).json({message: "Error getting event", errors: error});
+    }
 }
 
+const deleteEvent = async (req, res) => {
+    try{
+        const {id} = req.params;
+        const {id_owner} = req.query;
+        const deletedEvent = await Events.findOneAndDelete({_id: id, id_owner});
+
+        if (!deletedEvent) {
+            return res.status(404).json({error: 'No event with id ' + id_owner});
+        }
+
+        return res.status(200).json({message: "Event deleted successfully",deletedEvent});
+    }
+    catch(error) {
+        console.error("Error deleting event", error);
+        res.status(500).json({message: "Error deleting event", errors: error});
+    }
+};
+
+
+const updateEvent = async (req, res) => {
+    try{
+        console.log(req.body);
+        const {id} = req.params;
+        const {task, employee, start_time, end_time, id_owner} = req.body;
+
+        if (!task || !employee || !start_time || !end_time || !id_owner) {
+            return res.status(400).json({error: 'Missing required fields'});
+        }
+
+        const updateEvent = await Events.findByIdAndUpdate(
+            id,
+            {task, start_time, end_time, id_owner},
+            {new: true}
+        );
+
+        if (!updateEvent) {
+            return res.status(404).json({error: 'No event with id ' + id_owner});
+        }
+
+        res.status(404).json({error: 'Event updated successfully'});
+    }
+    catch(error) {
+        console.error("Error updating event", error);
+        res.status(500).json({message: "Error deleting event", errors: error});
+    }
+
+}
 
 module.exports = {
     createEvent,
-}
+    getEvent,
+    deleteEvent,
+    updateEvent,
+};
