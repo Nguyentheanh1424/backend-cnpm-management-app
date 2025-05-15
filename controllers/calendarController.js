@@ -84,7 +84,7 @@ const updateEvent = async (req, res) => {
 
         const updateEvent = await Events.findByIdAndUpdate(
             id,
-            {task, start_time, end_time, id_owner},
+            {task, employee, start_time, end_time, id_owner},
             {new: true}
         );
 

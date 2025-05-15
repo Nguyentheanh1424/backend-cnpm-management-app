@@ -1,5 +1,4 @@
 const Message = require('../modules/Message');
-const messages = require("./chat");
 
 const saveMessageToDB = async (data)=>{
     const newMessage = new Message({
