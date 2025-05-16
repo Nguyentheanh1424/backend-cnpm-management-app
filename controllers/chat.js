@@ -1,4 +1,4 @@
-const Message = require('../modules/Message');
+const Message = require('../modules/message');
 
 const saveMessageToDB = async (data)=>{
     const newMessage = new Message({

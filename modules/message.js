@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
 
-const messageSchema = new mongoose.Schema({
+const { Schema, model, Types } = mongoose;
+
+const messageSchema = new Schema({
     sender:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: Types.ObjectId,
         ref: 'Users',
         required: true
     },
     owner:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        type: Types.ObjectId,
+        ref: 'Users',
         required: true
     },
     content: {
@@ -21,4 +23,5 @@ const messageSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("Message", messageSchema);
+const message = model("Message", messageSchema);
+module.exports = message;
