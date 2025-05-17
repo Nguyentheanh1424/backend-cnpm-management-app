@@ -10,7 +10,7 @@ class Database {
     async connect() {
         try {
             logger.info(`Attempting to connect to MongoDB Atlas at ${this.uri.replace(/:.*@/, ':****@')}`);
-            await mongoose.connect(this.uri)
+            await mongoose.connect(this.uri);
             logger.info(`Successfully connected to MongoDB Atlas`);
         }
         catch (err) {

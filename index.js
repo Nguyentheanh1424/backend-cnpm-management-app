@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require("swagger-ui-express");
 const database = require('./config/dbconfig');
@@ -33,7 +34,22 @@ try {
     logger.info('Swagger documentation initialized', { swaggerOptions });
 
     // Cấu hình middleware
+    app.use(cors({
+        origin: process.env.NODE_ENV === 'production' 
+            ? process.env.FRONTEND_URL || 'https://yourdomain.com' 
+            : 'http://localhost:5173', // Default Vite dev server port
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    }));
     app.use(express.json());
+
+    // Import routes
+    const authRoutes = require('./routes/auth');
+
+    // Use routes
+    app.use('/api/auth', authRoutes);
+    logger.info('Auth routes initialized');
 
     // Swagger route
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -69,4 +85,3 @@ startServer().catch((err) => {
     logger.error(`Unhandled error in startServer: ${err.message}`);
     process.exit(1);
 });
-
