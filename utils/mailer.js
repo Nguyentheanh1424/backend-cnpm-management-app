@@ -24,5 +24,4 @@ const sendCodeMail = async (to, code) => {
         throw new Error('Failed to send verification email');
     }
 };
-
 module.exports = { sendCodeMail };

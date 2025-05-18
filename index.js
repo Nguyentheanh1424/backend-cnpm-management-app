@@ -46,10 +46,22 @@ try {
 
     // Import routes
     const authRoutes = require('./routes/auth');
+    const bankRoutes = require('./routes/bank');
+    const calendarRoutes = require('./routes/calendar');
+    const chatRoutes = require('./routes/chat');
+    const productsRoutes = require('./routes/products');
+    const sellRoutes = require('./routes/sell');
+    const homeRoutes = require('./routes/home');
 
     // Use routes
     app.use('/api/auth', authRoutes);
-    logger.info('Auth routes initialized');
+    app.use('/api/bank', bankRoutes);
+    app.use('/api/calendar', calendarRoutes);
+    app.use('/api/chat', chatRoutes);
+    app.use('/api/products', productsRoutes);
+    app.use('/api/sell', sellRoutes);
+    app.use('/api/home', homeRoutes);
+    logger.info('All routes initialized');
 
     // Swagger route
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));

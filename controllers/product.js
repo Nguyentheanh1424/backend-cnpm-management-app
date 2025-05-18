@@ -1,4 +1,4 @@
-const Products = require('../modules/products');
+const Product = require('../modules/product');
 const History = require('../modules/history');
 const Cloudinary = require('cloudinary').v2;
 const Suppliers = require('../modules/supplier');
@@ -15,7 +15,7 @@ Cloudinary.config({
 const show = async (req, res) => {
     const {user} = req.body;
     try {
-        const products = await Products.find({owner: user.id_owner});
+        const products = await Product.find({owner: user.id_owner});
         res.json(products);
     } catch (error) {
         console.error('show error:', error);
@@ -27,7 +27,7 @@ const show = async (req, res) => {
 const edit = async (req, res) => {
     const {user, product_edit, detail, check} = req.body;
     try {
-        let product = await Products.find({_id: product_edit._id});
+        let product = await Product.find({_id: product_edit._id});
         product = product[0];
 
         if (product.image && product.image.public_id && check) {
@@ -40,7 +40,7 @@ const edit = async (req, res) => {
         }
 
         const oldProduct = JSON.parse(JSON.stringify(product));
-        product = await Products.findByIdAndUpdate(
+        product = await Product.findByIdAndUpdate(
             product_edit._id,
             product_edit,
             {new: true, runValidators: true}
@@ -93,7 +93,7 @@ const edit = async (req, res) => {
 const deletes = async (req, res) => {
     const {user, product_delete, detail} = req.body;
     try {
-        const product = await Products.findByIdAndDelete(product_delete._id);
+        const product = await Product.findByIdAndDelete(product_delete._id);
 
         if (!product) {
             return res.status(404).json({message: 'Product not found'});
@@ -126,7 +126,7 @@ const deletes = async (req, res) => {
 // Lấy chi tiết sản phẩm
 const show_detail = async (req, res) => {
     try {
-        const product = await Products.findOne({_id: req.params.id})
+        const product = await Product.findOne({_id: req.params.id})
             .populate("supplier")
             .lean(); // chuyển đổi tài liệu thành đối tượng JavaScript thuần túy
         if (!product) {
@@ -145,12 +145,12 @@ const create = async (req, res) => {
     console.log({
         ...newPr,
     });
-    const Check = await Products.find({owner: user.id_owner, sku: newPr.sku})
+    const Check = await Product.find({owner: user.id_owner, sku: newPr.sku})
     if (Check.length > 0) {
         return res.status(500).json({message: 'sku đã bị trùng'});
     }
     try {
-        const newProduct = new Products({
+        const newProduct = new Product({
             ...newPr,
             owner: user.id_owner
         });
@@ -356,7 +356,7 @@ const getProductsBySupplier = async (req, res) => {
         return res.status(400).json({ error: "Product ID is required" });
     }
     try {
-        const products = await Products.aggregate([
+        const products = await Product.aggregate([
             {
                 $lookup: {
                     from: "Suppliers",
@@ -411,7 +411,7 @@ const getProductsByProductName = async (req, res) => {
         return res.status(400).json({ error: "Product ID is required" });
     }
     try {
-        const products = await Products.aggregate([
+        const products = await Product.aggregate([
             {
                 $lookup: {
                     from: "Suppliers",
