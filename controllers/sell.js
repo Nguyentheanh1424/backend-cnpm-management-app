@@ -230,7 +230,7 @@ const edit_customer=async (req,res)=>{
         const updatedFields = Object.keys(customer_edit);
 
         const filteredFields = updatedFields.filter(field => {
-            if(field=='creater'||field=='owner'||field=="updatedAt") {
+            if(field=='creator'||field=='owner'||field=="updatedAt") {
                 return false;}
             if(field=="rate"){
                 customer_edit[field] =parseInt(customer_edit[field])
@@ -247,12 +247,12 @@ const edit_customer=async (req,res)=>{
                 return `${field} changed from '${oldValue}' to '${newValue}'`;
             });
 
-            const history = new customerCHistory({
+            const history = new customerChangeHistory({
                 owner: user.id_owner,
                 employee: user._id,
                 customer: customer_edit.name,
                 action: 'update',
-                details: '${changes.join(', ')}.'
+                details: `${changes.join(', ')} `
             });
 
             try {

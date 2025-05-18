@@ -45,7 +45,7 @@ const productSchema = new Schema(
 
         reorderLevel: {
             type: Types.ObjectId,
-            ref: 'Suppliers',
+            ref: 'Supplier',
             required: true,
         },
 
