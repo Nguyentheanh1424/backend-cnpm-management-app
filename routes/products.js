@@ -1,5 +1,5 @@
 const express = require('express');
-const products = require('../controllers/products'); // Import controller
+const products = require('../controllers/product'); // Import controller
 const router = express.Router();
 
 router.post('/show', products.show);

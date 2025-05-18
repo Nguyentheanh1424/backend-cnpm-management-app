@@ -1,4 +1,4 @@
-const Products = require("../modules/products");
+const Products = require("../modules/product");
 const Bills = require("../modules/bill");
 const Customer = require("../modules/customer");
 const customerChangeHistory = require("../modules/history_change_customer");
@@ -252,7 +252,7 @@ const edit_customer=async (req,res)=>{
                 employee: user._id,
                 customer: customer_edit.name,
                 action: 'update',
-                details: '${changes.join(', ')}.'
+                details: `${changes.join(`, `)}.`
             });
 
             try {
