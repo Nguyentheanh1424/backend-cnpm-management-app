@@ -5,7 +5,6 @@ const {
     loginWithGoogle, 
     registerUser, 
     sendResetCode, 
-    verifyResetCode, 
     resetPassword 
 } = require('../controllers/login');
 
@@ -41,10 +40,22 @@ const {
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 message:
  *                   type: string
+ *                   description: Success message
  *                 user:
  *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
  *       401:
  *         description: Invalid credentials
  *       500:
@@ -65,16 +76,73 @@ router.post('/login', loginWithEmail);
  *           schema:
  *             type: object
  *             required:
- *               - token
+ *               - GoogleID
+ *               - family_name
+ *               - given_name
+ *               - email
  *             properties:
- *               token:
+ *               GoogleID:
  *                 type: string
- *                 description: Google OAuth token
+ *                 description: Google user ID
+ *               family_name:
+ *                 type: string
+ *                 description: User's family name
+ *               given_name:
+ *                 type: string
+ *                 description: User's given name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email
  *     responses:
  *       200:
  *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
+ *       201:
+ *         description: New user created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     avatar:
+ *                       type: string
  *       401:
- *         description: Invalid token
+ *         description: Invalid Google credentials
  *       500:
  *         description: Server error
  */
@@ -84,8 +152,15 @@ router.post('/google', loginWithGoogle);
  * @swagger
  * /api/auth/signup:
  *   post:
- *     summary: Register a new user
+ *     summary: Start the registration process
  *     tags: [Authentication]
+ *     description: |
+ *       This endpoint initiates the registration process by:
+ *       1. Creating a temporary user with the provided email and name
+ *       2. Generating a random password
+ *       3. Sending a verification code to the user's email
+ *       
+ *       To complete registration, the user must verify their email using the /reset_password endpoint.
  *     requestBody:
  *       required: true
  *       content:
@@ -94,23 +169,18 @@ router.post('/google', loginWithGoogle);
  *             type: object
  *             required:
  *               - email
- *               - password
  *               - name
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
  *                 description: User's email
- *               password:
- *                 type: string
- *                 format: password
- *                 description: User's password
  *               name:
  *                 type: string
  *                 description: User's name
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: Verification code sent successfully
  *       400:
  *         description: Email already in use
  *       500:
@@ -147,45 +217,18 @@ router.post('/signup', registerUser);
  */
 router.post('/forgot_password', sendResetCode);
 
-/**
- * @swagger
- * /api/auth/verify_code:
- *   post:
- *     summary: Verify password reset code
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - code
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 description: User's email
- *               code:
- *                 type: string
- *                 description: Reset code
- *     responses:
- *       200:
- *         description: Code verified successfully
- *       400:
- *         description: Invalid code
- *       500:
- *         description: Server error
- */
-router.post('/verify_code', verifyResetCode);
 
 /**
  * @swagger
  * /api/auth/reset_password:
  *   post:
- *     summary: Reset password
+ *     summary: Reset password or complete registration
  *     tags: [Authentication]
+ *     description: |
+ *       This endpoint serves two purposes:
+ *       1. Complete registration - Verify email and set a password for a temporary user
+ *       2. Reset password - Change password for an existing user
+ *       The same verification code is used for both processes.
  *     requestBody:
  *       required: true
  *       content:
@@ -195,7 +238,6 @@ router.post('/verify_code', verifyResetCode);
  *             required:
  *               - email
  *               - code
- *               - newPassword
  *             properties:
  *               email:
  *                 type: string
@@ -203,16 +245,45 @@ router.post('/verify_code', verifyResetCode);
  *                 description: User's email
  *               code:
  *                 type: string
- *                 description: Verification code
+ *                 description: Verification code received via email
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 description: New password
+ *                 description: New password (optional for registration if you want to use the auto-generated password)
  *     responses:
  *       200:
- *         description: Password reset successfully
+ *         description: Password reset or registration completed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       description: Success message
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         role:
+ *                           type: string
+ *                         avatar:
+ *                           type: string
+ *                 - type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       description: Success message
  *       400:
- *         description: Invalid code
+ *         description: Invalid verification code
+ *       404:
+ *         description: Email not found
  *       500:
  *         description: Server error
  */

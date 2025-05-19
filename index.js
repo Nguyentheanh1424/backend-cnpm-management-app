@@ -48,6 +48,7 @@ const chatRoutes = require('./routes/chat');
 const productsRoutes = require('./routes/products');
 const sellRoutes = require('./routes/sell');
 const homeRoutes = require('./routes/home');
+const userRoutes = require('./routes/user');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -57,6 +58,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/sell', sellRoutes);
 app.use('/api/home', homeRoutes);
+app.use('/api/user', userRoutes);
 logger.info('All routes initialized');
 
 // Kiểm tra Route

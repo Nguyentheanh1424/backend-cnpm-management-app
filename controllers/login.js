@@ -1,7 +1,6 @@
 require('dotenv').config();
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 const { sendCodeMail } = require('../utils/mailer');
 const User = require('../modules/user');
@@ -21,13 +20,6 @@ const loginWithEmail = async (req, res) => {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { userId: user._id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
         res.status(200).json({ 
             message: 'Login successful', 
             user: {
@@ -36,8 +28,7 @@ const loginWithEmail = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 avatar: user.avatar
-            },
-            token 
+            }
         });
     } catch (error) {
         logger.error('Login error:', error);
@@ -61,13 +52,6 @@ const loginWithGoogle = async (req, res) => {
             user = new User({ GoogleID, name, email });
             await user.save();
 
-            // Generate JWT token for new user
-            const token = jwt.sign(
-                { userId: user._id, email: user.email, role: user.role },
-                process.env.JWT_SECRET,
-                { expiresIn: '24h' }
-            );
-
             return res.status(201).json({ 
                 message: 'Tạo người dùng mới thành công',
                 user: {
@@ -76,17 +60,9 @@ const loginWithGoogle = async (req, res) => {
                     email: user.email,
                     role: user.role,
                     avatar: user.avatar
-                },
-                token 
+                }
             });
         }
-
-        // Generate JWT token for existing user
-        const token = jwt.sign(
-            { userId: user._id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
 
         res.status(200).json({ 
             message: 'Login successful', 
@@ -96,8 +72,7 @@ const loginWithGoogle = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 avatar: user.avatar
-            },
-            token 
+            }
         });
     } catch (error) {
         logger.error('Login error:', error);
@@ -107,58 +82,46 @@ const loginWithGoogle = async (req, res) => {
 
 // Đăng ký tài khoản
 const registerUser = async (req, res) => {
-    const { name, email, password, confirm, code } = req.body;
+    const { name, email } = req.body;
 
     try {
-        if (confirm) {
-            const tempUser = await UserTemp.findOne({ email });
-            if (!tempUser || tempUser.code !== code || tempUser.resetCodeExpire < Date.now()) {
-                return res.status(400).json({ message: 'Mã xác nhận không hợp lệ hoặc đã hết hạn!' });
-            }
-
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const newUser = new User({ name, email, password: hashedPassword });
-            await newUser.save();
-            await UserTemp.deleteMany({ email });
-
-            // Generate JWT token for new user
-            const token = jwt.sign(
-                { userId: newUser._id, email: newUser.email, role: newUser.role },
-                process.env.JWT_SECRET,
-                { expiresIn: '24h' }
-            );
-
-            return res.status(200).json({ 
-                message: 'Tạo người dùng mới thành công',
-                user: {
-                    _id: newUser._id,
-                    name: newUser.name,
-                    email: newUser.email,
-                    role: newUser.role,
-                    avatar: newUser.avatar
-                },
-                token 
-            });
-        }
-
         const existed = await User.findOne({ email });
         if (existed) {
             return res.status(400).json({ message: 'Email đã tồn tại' });
         }
 
-        await UserTemp.deleteMany({ email });
+        // Generate a random password
+        const generatedPassword = crypto.randomBytes(8).toString('hex');
+        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newTempUser = new UserTemp({ name, email, password: hashedPassword });
+        // Create temporary user with auto-generated password
+        const newTempUser = new UserTemp({ 
+            name, 
+            email, 
+            password: hashedPassword,
+            originalPassword: generatedPassword // Store original password to send in email
+        });
 
         const generatedCode = crypto.randomBytes(3).toString('hex');
         newTempUser.code = generatedCode;
         newTempUser.resetCodeExpire = Date.now() + 10 * 60 * 1000;
-        await newTempUser.save();
 
-        await sendCodeMail(newTempUser.email, generatedCode);
+        try {
+            // First try to send the email with the generated password
+            await sendCodeMail(email, generatedCode, generatedPassword);
 
-        res.status(201).json({ message: 'Mã xác nhận đã được gửi đến email!' });
+            // Only save the temp user if email was sent successfully
+            await UserTemp.deleteMany({ email });
+            await newTempUser.save();
+
+            res.status(201).json({ 
+                message: 'Mã xác nhận đã được gửi đến email!',
+                info: 'Để hoàn tất đăng ký, vui lòng xác thực email của bạn bằng mã xác thực đã được gửi.'
+            });
+        } catch (emailError) {
+            logger.error('Error sending verification email:', emailError);
+            res.status(500).json({ message: 'Không thể gửi email xác nhận. Vui lòng thử lại!' });
+        }
     } catch (error) {
         logger.error('Error in sign_up:', error);
         res.status(500).json({ message: 'Có lỗi xảy ra. Vui lòng thử lại!' });
@@ -186,30 +149,58 @@ const sendResetCode = async (req, res) => {
     }
 };
 
-// Xác thực mã đặt lại mật khẩu
-const verifyResetCode = async (req, res) => {
-    const { email, ma } = req.body;
+// Đổi mật khẩu sau khi xác thực hoặc xác thực đăng ký
+const resetPassword = async (req, res) => {
+    const { email, code, newPassword } = req.body;
     try {
-        const user = await User.findOne({ email });
-        if (!user || user.resetCode !== ma || user.resetCodeExpire < Date.now()) {
-            return res.status(400).json({ message: 'Mã xác nhận không hợp lệ hoặc đã hết hạn!' });
+        // First check if this is a registration verification
+        const tempUser = await UserTemp.findOne({ email });
+        if (tempUser) {
+            // This is a registration verification
+            if (tempUser.code !== code || tempUser.resetCodeExpire < Date.now()) {
+                return res.status(400).json({ message: 'Mã xác thực không hợp lệ hoặc đã hết hạn!' });
+            }
+
+            // Create a new user with the provided password or the stored password
+            const hashedPassword = newPassword 
+                ? await bcrypt.hash(newPassword, 10) 
+                : tempUser.password;
+
+            const newUser = new User({ 
+                name: tempUser.name, 
+                email: tempUser.email, 
+                password: hashedPassword 
+            });
+            await newUser.save();
+            await UserTemp.deleteMany({ email });
+
+            return res.status(200).json({ 
+                message: 'Tạo người dùng mới thành công',
+                user: {
+                    _id: newUser._id,
+                    name: newUser.name,
+                    email: newUser.email,
+                    role: newUser.role,
+                    avatar: newUser.avatar
+                }
+            });
         }
 
-        res.status(200).json({ message: 'Success' });
-    } catch (error) {
-        logger.error('Error in change_password:', error);
-        res.status(500).json({ message: 'Có lỗi xảy ra. Vui lòng thử lại!' });
-    }
-};
-
-// Đổi mật khẩu sau khi xác thực
-const resetPassword = async (req, res) => {
-    const { email, password } = req.body;
-    try {
+        // If not a registration, then it's a password reset
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: 'Email không tồn tại!' });
 
-        user.password = await bcrypt.hash(password, 10);
+        // Verify the reset code
+        if (!user.resetCode || user.resetCode !== code || user.resetCodeExpire < Date.now()) {
+            return res.status(400).json({ message: 'Mã xác thực không hợp lệ hoặc đã hết hạn!' });
+        }
+
+        // Reset the code after successful verification
+        user.resetCode = undefined;
+        user.resetCodeExpire = undefined;
+
+        // Update password
+        user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
 
         res.status(200).json({ message: 'Success' });
@@ -224,6 +215,5 @@ module.exports = {
     loginWithGoogle,
     registerUser,
     sendResetCode,
-    verifyResetCode,
     resetPassword
 };

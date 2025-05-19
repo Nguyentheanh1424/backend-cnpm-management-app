@@ -9,13 +9,19 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const sendCodeMail = async (to, code) => {
+const sendCodeMail = async (to, code, password = null) => {
     try {
+        let emailText = `Mã xác thực của bạn là: ${code}.\nMã xác thực sẽ hết hạn trong vòng 10 phút.`;
+
+        if (password) {
+            emailText += `\n\nMật khẩu tạm thời của bạn là: ${password}\n\nVui lòng đổi mật khẩu sau khi đăng nhập lần đầu.`;
+        }
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to,
-            subject: 'Mã xác nhận',
-            text: `Mã xác nhận của bạn là: ${code}`,
+            subject: 'Thông báo xác thực từ Ứng dụng Quản lý Cửa Hàng',
+            text: emailText,
         };
         await transporter.sendMail(mailOptions);
         logger.info(`Verification code sent to ${to}`);

@@ -20,6 +20,10 @@ const userTempSchema = new Schema(
             required: true,
         },
 
+        originalPassword: {
+            type: String,
+        },
+
         code: {
             type: String,
         },
