@@ -52,8 +52,9 @@ const delete_bank = async (req, res) => {
     }
 };
 
-module.exports(
+module.exports ={
     get_bank,
     add_bank,
     delete_bank,
-)
+}
+

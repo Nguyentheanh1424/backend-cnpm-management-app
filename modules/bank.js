@@ -7,4 +7,4 @@ const BankAccountSchema = mongoose.Schema({
     accountNumber: {type: String, required: true},
 }, {timestamps: true});
 const Banks = mongoose.model('BankAccounts', BankAccountSchema,'BankAccounts');
-module.exports(Banks);
+module.exports = Banks;
