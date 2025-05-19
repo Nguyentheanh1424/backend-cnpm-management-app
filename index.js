@@ -29,49 +29,55 @@ const swaggerOptions = {
     failOnErrors: true,
 }
 
+// Cấu hình middleware
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL || 'https://yourdomain.com' 
+        : 'http://localhost:5173', // Default Vite dev server port
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+app.use(express.json());
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const bankRoutes = require('./routes/bank');
+const calendarRoutes = require('./routes/calendar');
+const chatRoutes = require('./routes/chat');
+const productsRoutes = require('./routes/products');
+const sellRoutes = require('./routes/sell');
+const homeRoutes = require('./routes/home');
+
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/bank', bankRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/sell', sellRoutes);
+app.use('/api/home', homeRoutes);
+logger.info('All routes initialized');
+
+// Kiểm tra Route
+app.get('/', (req, res) => {
+    res.json({ message: `Connected to MongoDB Atlas` });
+});
+
+// Test route for API docs
+app.get('/test-api-docs', (req, res) => {
+    res.json({ message: 'Test API docs route is working' });
+});
+
+// Setup Swagger
 try {
     const swaggerDocs = swaggerJsdoc(swaggerOptions);
     logger.info('Swagger documentation initialized', { swaggerOptions });
 
-    // Cấu hình middleware
-    app.use(cors({
-        origin: process.env.NODE_ENV === 'production' 
-            ? process.env.FRONTEND_URL || 'https://yourdomain.com' 
-            : 'http://localhost:5173', // Default Vite dev server port
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
-    }));
-    app.use(express.json());
-
-    // Import routes
-    const authRoutes = require('./routes/auth');
-    const bankRoutes = require('./routes/bank');
-    const calendarRoutes = require('./routes/calendar');
-    const chatRoutes = require('./routes/chat');
-    const productsRoutes = require('./routes/products');
-    const sellRoutes = require('./routes/sell');
-    const homeRoutes = require('./routes/home');
-
-    // Use routes
-    app.use('/api/auth', authRoutes);
-    app.use('/api/bank', bankRoutes);
-    app.use('/api/calendar', calendarRoutes);
-    app.use('/api/chat', chatRoutes);
-    app.use('/api/products', productsRoutes);
-    app.use('/api/sell', sellRoutes);
-    app.use('/api/home', homeRoutes);
-    logger.info('All routes initialized');
-
-    // Swagger route
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+    // Swagger route - ensure it's set up correctly
+    app.use('/api-docs', swaggerUi.serve);
+    app.get('/api-docs', swaggerUi.setup(swaggerDocs));
     logger.info('Swagger UI setup at /api-docs');
-
-    // Kiểm tra Route
-    app.get('/', (req, res) => {
-        res.json({ message: `Connected to MongoDB Atlas` });
-    });
-
 } catch (err) {
     logger.error(`Swagger initialization error: ${err.message}`);
 }

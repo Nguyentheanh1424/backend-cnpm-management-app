@@ -27,12 +27,25 @@ const {
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 description: User's email
  *               password:
  *                 type: string
+ *                 format: password
+ *                 description: User's password
  *     responses:
  *       200:
  *         description: Login successful
- *       400:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *       401:
  *         description: Invalid credentials
  *       500:
  *         description: Server error
@@ -43,7 +56,7 @@ router.post('/login', loginWithEmail);
  * @swagger
  * /api/auth/google:
  *   post:
- *     summary: Login or register with Google
+ *     summary: Login with Google
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -52,24 +65,16 @@ router.post('/login', loginWithEmail);
  *           schema:
  *             type: object
  *             required:
- *               - GoogleID
- *               - family_name
- *               - given_name
- *               - email
+ *               - token
  *             properties:
- *               GoogleID:
+ *               token:
  *                 type: string
- *               family_name:
- *                 type: string
- *               given_name:
- *                 type: string
- *               email:
- *                 type: string
+ *                 description: Google OAuth token
  *     responses:
  *       200:
  *         description: Login successful
- *       201:
- *         description: User created successfully
+ *       401:
+ *         description: Invalid token
  *       500:
  *         description: Server error
  */
@@ -87,24 +92,27 @@ router.post('/google', loginWithGoogle);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - name
  *             properties:
- *               name:
- *                 type: string
  *               email:
  *                 type: string
+ *                 format: email
+ *                 description: User's email
  *               password:
  *                 type: string
- *               confirm:
- *                 type: boolean
- *               code:
+ *                 format: password
+ *                 description: User's password
+ *               name:
  *                 type: string
+ *                 description: User's name
  *     responses:
- *       200:
- *         description: User created successfully
  *       201:
- *         description: Verification code sent
+ *         description: User registered successfully
  *       400:
- *         description: Email already exists or invalid code
+ *         description: Email already in use
  *       500:
  *         description: Server error
  */
@@ -112,9 +120,9 @@ router.post('/signup', registerUser);
 
 /**
  * @swagger
- * /api/auth/forgot-password:
+ * /api/auth/forgot_password:
  *   post:
- *     summary: Request password reset
+ *     summary: Send password reset code
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -127,21 +135,23 @@ router.post('/signup', registerUser);
  *             properties:
  *               email:
  *                 type: string
+ *                 format: email
+ *                 description: User's email
  *     responses:
  *       200:
- *         description: Reset code sent
+ *         description: Reset code sent successfully
  *       404:
- *         description: Email not found
+ *         description: User not found
  *       500:
  *         description: Server error
  */
-router.post('/forgot-password', sendResetCode);
+router.post('/forgot_password', sendResetCode);
 
 /**
  * @swagger
- * /api/auth/verify-code:
+ * /api/auth/verify_code:
  *   post:
- *     summary: Verify reset code
+ *     summary: Verify password reset code
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -151,25 +161,28 @@ router.post('/forgot-password', sendResetCode);
  *             type: object
  *             required:
  *               - email
- *               - ma
+ *               - code
  *             properties:
  *               email:
  *                 type: string
- *               ma:
+ *                 format: email
+ *                 description: User's email
+ *               code:
  *                 type: string
+ *                 description: Reset code
  *     responses:
  *       200:
- *         description: Code verified
+ *         description: Code verified successfully
  *       400:
- *         description: Invalid or expired code
+ *         description: Invalid code
  *       500:
  *         description: Server error
  */
-router.post('/verify-code', verifyResetCode);
+router.post('/verify_code', verifyResetCode);
 
 /**
  * @swagger
- * /api/auth/reset-password:
+ * /api/auth/reset_password:
  *   post:
  *     summary: Reset password
  *     tags: [Authentication]
@@ -181,18 +194,28 @@ router.post('/verify-code', verifyResetCode);
  *             type: object
  *             required:
  *               - email
- *               - password
+ *               - code
+ *               - newPassword
  *             properties:
  *               email:
  *                 type: string
- *               password:
+ *                 format: email
+ *                 description: User's email
+ *               code:
  *                 type: string
+ *                 description: Verification code
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: New password
  *     responses:
  *       200:
- *         description: Password reset successful
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid code
  *       500:
  *         description: Server error
  */
-router.post('/reset-password', resetPassword);
+router.post('/reset_password', resetPassword);
 
 module.exports = router;

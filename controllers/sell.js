@@ -1,4 +1,4 @@
-const Products = require("../modules/products");
+const Products = require("../modules/product");
 const Bills = require("../modules/bill");
 const Customer = require("../modules/customer");
 const customerChangeHistory = require("../modules/history_change_customer");
@@ -287,3 +287,14 @@ const delete_customer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+module.exports = {
+    find_code,
+    get_customer,
+    create_customer,
+    history,
+    get_history,
+    get_history_customer,
+    edit_customer,
+    delete_customer
+}
