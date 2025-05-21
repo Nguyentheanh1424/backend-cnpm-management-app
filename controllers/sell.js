@@ -187,7 +187,7 @@ const get_history = async (req, res) => {
 const get_history_customer = async (req, res) => {
     const { user } = req.body;
     try {
-        const activities = await customerCHistory.find({ owner: user.id_owner }) // Lấy lịch sử hoạt động của người chủ
+        const activities = await customerChangeHistory.find({ owner: user.id_owner }) // Lấy lịch sử hoạt động của người chủ
             .populate('employee', 'name email') // Lấy tên nhân viên
             .populate('customer')
             .sort({ timestamp: -1 }) // Sắp xếp theo thời gian
@@ -274,7 +274,7 @@ const delete_customer = async (req, res) => {
         if (!customer) {
             return res.status(404).json({ message: 'supplier not found' });
         }
-        const history = new customerCHistory({
+        const history = new customerChangeHistory({
             owner: user.id_owner,
             employee: user._id,
             customer: customer.phone,
@@ -290,11 +290,12 @@ const delete_customer = async (req, res) => {
 
 module.exports = {
     find_code,
-    get_customer,
     create_customer,
     history,
+    get_customer,
     get_history,
     get_history_customer,
     edit_customer,
     delete_customer
-}
+};
+
