@@ -284,7 +284,7 @@ const editSupplier = async (req, res) => {
                 return `${field} changed from '${oldValue}' to '${newValue}'`;
             });
 
-            const history = new supplierCHistory({
+            const history = new SupplierChangeHistory({
                 owner: user.id_owner, //
                 employee: user._id,
                 supplier: supplier_edit.name,
@@ -330,7 +330,7 @@ const deleteSupplier=async(req, res)=>{
         if (!supplier) {
             return res.status(404).json({ message: 'Supplier not found' });
         }
-        const history = new supplierCHistory({
+        const history = new SupplierChangeHistory({
             owner: user.id_owner,
             employee: user._id,
             supplier: supplier.name,
@@ -357,7 +357,7 @@ const getProductsBySupplier = async (req, res) => {
         const products = await Product.aggregate([
             {
                 $lookup: {
-                    from: "Suppliers",
+                    from: "Supplier",
                     localField: "supplier",
                     foreignField: "_id",
                     as: "supplierDetails",
@@ -412,7 +412,7 @@ const getProductsByProductName = async (req, res) => {
         const products = await Product.aggregate([
             {
                 $lookup: {
-                    from: "Suppliers",
+                    from: "Supplier",
                     localField: "supplier",
                     foreignField: "_id",
                     as: "supplierDetails",
