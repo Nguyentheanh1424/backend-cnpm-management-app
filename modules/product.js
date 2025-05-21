@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { Schema, model, Types } = mongoose;
+const {Schema, model, Types} = mongoose;
 
 const productSchema = new Schema(
     {
@@ -44,9 +44,14 @@ const productSchema = new Schema(
         },
 
         reorderLevel: {
-            type: Types.ObjectId,
-            ref: 'Supplier',
-            required: true,
+            type: Number,
+            default: 10
+        },
+
+        supplier: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Suppliers',
+            required: true
         },
 
         purchaseDate: {
@@ -60,11 +65,13 @@ const productSchema = new Schema(
 
         stock_in_Warehouse: {
             type: Number,
-            default: 0},
+            default: 0
+        },
 
         unit: {
             type: String,
-            default: 'pcs'},
+            default: 'pcs'
+        },
 
         purchasePrice: {
             type: String,
