@@ -1,103 +1,99 @@
-const roles = require('../modules/role');
-const users = require('../modules/user');
-const {error} = require("winston");
+const Roles = require('../modules/role'); 
+const Users = require('../modules/user');
+const logger = require('../config/logger');
 
-const create_role = async (req, res) => {
-    try{
-        console.log(req.body);
-        const {newRoleData, user} = req.body;
-        const {role, description, permissions, id_owner} = newRoleData;
-
-        const existingRole = await roles.findOne({role, id_owner});
+const createRole = async (req, res) => {
+    logger.info(`Creating new role: ${JSON.stringify(req.body)}`);
+    const {newRoleData, user} = req.body;
+    const { role, description, permissions, id_owner } = newRoleData; 
+    try {
+        const existingRole = await Roles.findOne({ role, id_owner });
         if (existingRole) {
-            return res.status(400).json({message: 'Role already exists'});
+            logger.warn(`Role creation failed: Role '${role}' already exists for owner ${id_owner}`);
+            return res.status(400).json({ message: 'Role already exists' });
         }
-
-        const newRole = new roles({
+        const newRole = new Roles({
             role,
             description,
             permissions,
-            crated_at: new Date(),
+            createAt: new Date(),
             id_owner,
         });
-
         await newRole.save();
-        console.log(newRole);
-        res.status(200).json({message: 'Successfully created role', role: newRole});
-    }
-    catch(err){
-        console.log('Error creating role', err);
-        res.status(500).json({message: 'Error creating role'});
+        logger.info(`New role created: ${JSON.stringify(newRole)}`);
+        res.status(201).json({ message: 'Role created successfully', role: newRole });
+    } catch (error) {
+        logger.error('Error creating role:', error); 
+        res.status(500).json({ message: 'Server error', error: error.message }); 
     }
 };
 
-const show_role = async (req, res) => {
+const showRole = async (req, res) => {
     try {
         const excludedId = 'Admin';
         const userId = req.query.userId;
-        const roles_data = await roles.find({
+        logger.info(`Fetching roles for user ID: ${userId}`);
+        const roles_data = await Roles.find({ 
             id_owner: userId,
-            role: { $ne: excludedId }
+            role: { $ne: excludedId } 
         });
         res.json(roles_data);
     } catch (error) {
-        console.log('Error showing role', error);
-        res.status(500).json({ message: 'Error showing role', error });
+        logger.error('Failed to fetch role data', error); 
+        res.status(500).json({ message: 'Error fetching roles', error: error.message });
     }
-}
+};
 
-const edit_role = async (req, res) => {
-    try{
-        const rolesWithPermissions = req.body.permissions;
+const deleteRole = async (req, res) => {
+    const { user, role_id } = req.body; 
+    try {
+        logger.info(`Attempting to delete role with ID: ${role_id}`);
+        const roleToDelete = await Roles.findById(role_id);
+        if (!roleToDelete) {
+            logger.warn(`Role deletion failed: Role with ID ${role_id} not found`);
+            return res.status(404).json({ message: 'Role not found' });
+        }
+        await Roles.findByIdAndDelete(role_id); 
+        await Users.updateMany(
+            { role: roleToDelete.role }, 
+            { role: '' } 
+        );
+        logger.info(`Role '${roleToDelete.role}' deleted successfully`);
+        res.status(200).json({ message: 'Role deleted successfully' });
+    } catch (error) {
+        logger.error('Failed to delete role', error); 
+        res.status(500).json({ message: 'Error deleting role', error: error.message });
+    }
+};
+
+const editRole = async (req, res) => {
+    try {
+        const rolesWithPermissions = req.body.rolesWithPermissions;
+        logger.info(`Updating permissions for ${rolesWithPermissions.length} roles`);
         for (const role of rolesWithPermissions) {
-            const updatedRole = await roles.findByIdAndUpdate(
-                role.id,
-                {permissions: role.permissions},
-                {new: true}
+            const updatedRole = await Roles.findByIdAndUpdate(
+                role._id,
+                { permissions: role.permissions },
+                { new: true } 
             );
-
             if (role.newRoleName && role.newRoleName !== updatedRole.role) {
-                await users.updateMany(
-                    {role: updatedRole.role},
-                    {role: role.newRoleName}
+                logger.info(`Renaming role from '${updatedRole.role}' to '${role.newRoleName}'`);
+                await Users.updateMany(
+                    { role: updatedRole.role }, 
+                    { role: role.newRoleName } 
                 );
             }
         }
-        res.status(200).json({message: 'Successfully edited role'});
+        res.status(200).json({ message: 'Update successful!' });
+    } catch (error) {
+        logger.error("Error updating permissions:", error);
+        res.status(500).json({ message: 'Error updating permissions.' });
     }
-    catch(err){
-        console.log('Error editing role', err);
-        res.status(500).json({ message: 'Error editing role', error });
-    }
-}
-
-const delete_role = async (req, res) => {
-    try{
-        const {user, role_id} = req.body;
-
-        const roleMustDelete = roles.findById(role_id);
-        if (!roleMustDelete) {
-            return res.status(404).json({message: 'Role not found'});
-        }
-
-        await roles.findByIdAndDelete(role_id);
-
-        await users.updateMany(
-            {role: roleMustDelete.role},
-            {role: ''}
-        );
-
-        res.status(200).json({message: 'Successfully deleted role', role: roleMustDelete});
-    }
-    catch (err){
-        console.log('Error deleting role', err);
-        res.status(500).json({message: 'Error deleting role', error});
-    }
-}
+};
 
 module.exports = {
-    create_role,
-    show_role,
-    edit_role,
-    delete_role,
-}
+    createRole,
+    showRole,
+    deleteRole,
+    editRole
+};

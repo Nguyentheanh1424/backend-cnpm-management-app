@@ -1,9 +1,10 @@
 const Events = require('../modules/event');
+const logger = require('../config/logger');
 
 //Api post , tao su kien moi
 
 const createEvent = async (req, res) => {
-    console.log(req.body);
+    logger.info(`Creating new event: ${JSON.stringify(req.body)}`);
 
     const {task , employee, start_time, end_time, id_owner}  = req.body;
 
@@ -25,7 +26,7 @@ const createEvent = async (req, res) => {
         res.status(201).json({message: "Event created ", event: newEvent});
     }
     catch(err){
-        console.error("Error creating event", err);
+        logger.error("Error creating event", err);
         res.status(500).json({message: "Error creating event", errors: err});
     }
 };
@@ -48,7 +49,7 @@ const getEvent = async (req, res) => {
         res.json(formattedEvents);
     }
     catch(error){
-        console.error("Error getting event", error);
+        logger.error("Error getting event", error);
         res.status(500).json({message: "Error getting event", errors: error});
     }
 }
@@ -66,7 +67,7 @@ const deleteEvent = async (req, res) => {
         return res.status(200).json({message: "Event deleted successfully",deletedEvent});
     }
     catch(error) {
-        console.error("Error deleting event", error);
+        logger.error("Error deleting event", error);
         res.status(500).json({message: "Error deleting event", errors: error});
     }
 };
@@ -74,7 +75,6 @@ const deleteEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
     try{
-        console.log(req.body);
         const {id} = req.params;
         const {task, employee, start_time, end_time, id_owner} = req.body;
 
@@ -95,7 +95,7 @@ const updateEvent = async (req, res) => {
         res.status(404).json({error: 'Event updated successfully'});
     }
     catch(error) {
-        console.error("Error updating event", error);
+        logger.error("Error updating event", error);
         res.status(500).json({message: "Error deleting event", errors: error});
     }
 

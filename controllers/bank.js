@@ -1,13 +1,13 @@
 const Banks = require('../modules/bank');
 
-const get_bank = async (req, res) => {
+const getBank = async (req, res) => {
     const {user} = req.body;
     const bankAccounts = await Banks.find({owner: user.id_owner});
 
     res.status(200).json(bankAccounts);
 };
 
-const add_bank = async (req, res) => {
+const addBank = async (req, res) => {
     try{
         const {user, newPr} = req.body;
 
@@ -25,7 +25,7 @@ const add_bank = async (req, res) => {
 
 };
 
-const delete_bank = async (req, res) => {
+const deleteBank = async (req, res) => {
     try{
         const {user, accountNumber, bankName} = req.body;
         console.log(user, accountNumber, bankName);
@@ -53,7 +53,7 @@ const delete_bank = async (req, res) => {
 };
 
 module.exports = {
-    get_bank,
-    add_bank,
-    delete_bank
+    getBank,
+    addBank,
+    deleteBank
 }

@@ -1,12 +1,19 @@
 const express = require('express');
-const products = require('../controllers/product'); // Import controller
+const {
+    show,
+    showDetail,
+    edit,
+    getHistory,
+    getSupplier,
+    getHistorySupplier
+} = require('../controllers/product'); // Import controller
 const router = express.Router();
 
 /**
  * @swagger
  * /api/products/show:
  *   post:
- *     summary: Get all products
+ *     summary: Get all product's
  *     tags: [Products]
  *     requestBody:
  *       required: true
@@ -27,7 +34,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/show', products.show);
+router.post('/show', show);
 
 /**
  * @swagger
@@ -50,7 +57,7 @@ router.post('/show', products.show);
  *       500:
  *         description: Server error
  */
-router.get('/show/:id', products.show_detail);
+router.get('/show/:id', showDetail);
 
 /**
  * @swagger
@@ -97,7 +104,7 @@ router.get('/show/:id', products.show_detail);
  *       500:
  *         description: Server error
  */
-router.post('/edit', products.edit);
+router.post('/edit', edit);
 
 /**
  * @swagger
@@ -124,7 +131,7 @@ router.post('/edit', products.edit);
  *       500:
  *         description: Server error
  */
-router.post('/history', products.get_history);
+router.post('/history', getHistory);
 
 /**
  * @swagger
@@ -151,7 +158,7 @@ router.post('/history', products.get_history);
  *       500:
  *         description: Server error
  */
-router.post('/get_supplier', products.get_supplier);
+router.post('/get_supplier', getSupplier);
 
 /**
  * @swagger
@@ -178,6 +185,6 @@ router.post('/get_supplier', products.get_supplier);
  *       500:
  *         description: Server error
  */
-router.post('/get_history_supplier', products.get_history_supplier);
+router.post('/get_history_supplier', getHistorySupplier);
 
 module.exports = router;

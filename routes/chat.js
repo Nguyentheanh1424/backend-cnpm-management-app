@@ -1,5 +1,7 @@
 const express = require('express');
-const chat = require('../controllers/chat.js'); // Import controller
+const {
+    getMessages,
+} = require('../controllers/chat.js'); // Import controller
 
 const router = express.Router();
 
@@ -52,5 +54,5 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/getMessages', chat.getMessages);
+router.post('/getMessages', getMessages);
 module.exports = router;

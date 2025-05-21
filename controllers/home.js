@@ -4,13 +4,14 @@ const Customer = require("../modules/customer");
 const OrderDetail = require("../modules/order_history");
 const History = require("../modules/history");
 const SupplierChangeHistory = require('../modules/history_change_supplier');
+const logger = require("../config/logger");
 
 // Calculate total revenue for today and compare with yesterday
 const totalRevenue = async (req, res) => {
   const { user } = req.body;
 
   try {
-    // Get today and yesterday dates
+    // Get dates today and yesterday
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -29,7 +30,7 @@ const totalRevenue = async (req, res) => {
       const billDate = new Date(bill.orderDate);
       const billDateString = billDate.toISOString().substring(0, 10);
 
-      // Parse amount, removing dots used as thousand separators
+      // Parse amount, removing dots used as a thousand separators
       let amount = parseFloat(bill.totalAmount.replace(/\./g, '')) || 0;
 
       // Calculate revenue for today
@@ -44,7 +45,7 @@ const totalRevenue = async (req, res) => {
 
     // Calculate percentage change
     let percentChange = 0;
-    let message = "notchange";
+    let message = "not change";
 
     if (totalRevenueYesterday > 0) {
       percentChange = ((totalRevenueToday - totalRevenueYesterday) / totalRevenueYesterday) * 100;
@@ -77,7 +78,7 @@ const totalRevenue = async (req, res) => {
       state: message
     });
   } catch (error) {
-    console.error("Error calculating total revenue:", error);
+    logger.error("Error calculating total revenue:", error);
     return res.status(500).json({ error: "Error calculating total revenue" });
   }
 };
@@ -87,7 +88,7 @@ const todayIncome = async (req, res) => {
   const { user } = req.body;
 
   try {
-    // Get today and yesterday dates
+    // Get dates today and yesterday
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -108,7 +109,7 @@ const todayIncome = async (req, res) => {
       const billDate = new Date(bill.orderDate);
       const billDateString = billDate.toISOString().substring(0, 10);
 
-      // Parse amount, removing dots used as thousand separators
+      // Parse amount, removing dots used as a thousand separators
       let amount = parseFloat(bill.totalAmount.replace(/\./g, '')) || 0;
 
       // Calculate for today
@@ -143,7 +144,7 @@ const todayIncome = async (req, res) => {
 
     // Calculate percentage change
     let percentChange = 0;
-    let message = "notchange";
+    let message = "not change";
 
     if (profitYesterday > 0) {
       percentChange = ((profitToday - profitYesterday) / profitYesterday) * 100;
@@ -176,7 +177,7 @@ const todayIncome = async (req, res) => {
       state: message
     });
   } catch (error) {
-    console.error('Error calculating income:', error);
+    logger.error('Error calculating income:', error);
     return res.status(500).json({ error: 'An error occurred while calculating income.' });
   }
 };
@@ -186,7 +187,7 @@ const newCustomer = async (req, res) => {
   const { user } = req.body;
 
   try {
-    // Get today and yesterday dates
+    // Get dates today and yesterday
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -216,7 +217,7 @@ const newCustomer = async (req, res) => {
 
     // Calculate percentage change
     let percentChange = 0;
-    let message = "notchange";
+    let message = "not change";
 
     if (customerYesterday > 0) {
       percentChange = ((customerToday - customerYesterday) / customerYesterday) * 100;
@@ -238,12 +239,12 @@ const newCustomer = async (req, res) => {
       state: message
     });
   } catch (error) {
-    console.error('Error calculating new customers:', error);
+    logger.error('Error calculating new customers:', error);
     return res.status(500).json({ error: 'An error occurred while calculating new customers.' });
   }
 };
 
-// Generate customer report by month
+// Generate the customer report by month
 const generateCustomerReport = async (req, res) => {
   const { user } = req.body;
   const months = [
@@ -289,7 +290,7 @@ const generateCustomerReport = async (req, res) => {
         new Date(customer.firstPurchaseDate).getMonth() < i
       ).length;
 
-      // Add data to report
+      // Add data to a report
       report.push({
         name: month,
         "Loyal Customers": loyalCustomers,
@@ -300,7 +301,7 @@ const generateCustomerReport = async (req, res) => {
 
     return res.status(200).json(report);
   } catch (error) {
-    console.error('Error generating customer report:', error);
+    logger.error('Error generating customer report:', error);
     return res.status(500).json({ error: 'An error occurred while generating customer report.' });
   }
 };
@@ -343,12 +344,12 @@ const generateDailySale = async (req, res) => {
       report
     });
   } catch (error) {
-    console.error('Error generating daily sales report:', error);
+    logger.error('Error generating daily sales report:', error);
     return res.status(500).json({ error: 'An error occurred while generating daily sales report.' });
   }
 };
 
-// Generate daily new customer report for the last 8 days
+// Generate the daily new customer report for the last 8 days
 const generateDailyCustomer = async (req, res) => {
   const { user } = req.body;
 
@@ -379,19 +380,19 @@ const generateDailyCustomer = async (req, res) => {
       data
     });
   } catch (error) {
-    console.error('Error generating daily customer report:', error);
+    logger.error('Error generating daily customer report:', error);
     return res.status(500).json({ error: 'An error occurred while generating daily customer report.' });
   }
 };
 
-// Get top rated products
+// Get top-rated products
 function getTopRatedProducts(products, topN = 3) {
   return products
     .sort((a, b) => b.rate - a.rate)
     .slice(0, topN);
 }
 
-// Generate top rated products
+// Generate top-rated products
 const generateTopProduct = async (req, res) => {
   const { user } = req.body;
 
@@ -404,7 +405,7 @@ const generateTopProduct = async (req, res) => {
 
     return res.status(200).json(topProducts);
   } catch (error) {
-    console.error('Error generating top products:', error);
+    logger.error('Error generating top products:', error);
     return res.status(500).json({ error: 'An error occurred while generating top products.' });
   }
 };
@@ -434,7 +435,7 @@ const totalPending = async (req, res) => {
       percent: percentPending.toFixed(2) + "%"
     });
   } catch (error) {
-    console.error('Error calculating pending orders:', error);
+    logger.error('Error calculating pending orders:', error);
     return res.status(500).json({ error: 'An error occurred while calculating pending orders.' });
   }
 };
@@ -470,7 +471,7 @@ const recentActivity = async (req, res) => {
         date: new Date(event.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
       })),
       ...supplierEvents.map(event => ({
-        type: "feed-item-infor",
+        type: "feed-item-info",
         detail: event.supplier + " <br /> " + event.action + " <br /> " + event.details,
         date: new Date(event.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
       }))
@@ -486,7 +487,7 @@ const recentActivity = async (req, res) => {
       events: recentEvents
     });
   } catch (error) {
-    console.error('Error fetching recent activity:', error);
+    logger.error('Error fetching recent activity:', error);
     return res.status(500).json({ error: 'An error occurred while fetching recent activity.' });
   }
 };
