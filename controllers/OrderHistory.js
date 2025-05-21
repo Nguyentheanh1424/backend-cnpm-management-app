@@ -11,43 +11,54 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: "huyhuy11102k4@gmail.com", // Email của bạn
-        pass: "sugi azhu mxpz snjy", // Mật khẩu ứng dụng
+        user: "ntheanh0104@gmail.com", // Email của bạn
+        pass: "igimrjmnxgdywfon", // Mật khẩu ứng dụng
     },
 });
 
 const sendEmail = async (to, subject, text) => {
     try {
         const mailOptions = {
-            from: "huyhuy11102k4@gmail.com",
+            from: "ntheanh0104@gmail.com",
             to: to,
             subject: subject,
             text: text,
         };
-
-        // Gửi email
         await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully!");
+        console.log(`Email sent successfully to ${to}`);
+        return { success: true };
     } catch (error) {
-        console.error("Error sending email:", error);
+        console.error(`Error sending email to ${to}:`, error);
+        return { success: false, error: error.message };
     }
 };
-const template = (listOrder) => {
-    const needsEmail = listOrder.filter((order) => order.email);
-    if (needsEmail.length === 0) return null;
+
+const template = (listOrder, orderId) => {
+    if (!listOrder || listOrder.length === 0) return null;
     return (
-        `dear ${listOrder[0].supplier}\n` +
-        needsEmail.map(
-            (order) => `tôi muốn nhập ${order.quantity} sản phẩm  ${order.name}\n`
-        ) +
-        "Cảm ơn vì đã xem"
+        `Kính gửi ${listOrder[0].supplier},\n` +
+        `Mã đơn hàng: ${orderId}\n` +
+        `Ngày yêu cầu: ${new Date().toLocaleDateString('vi-VN')}\n` +
+        listOrder.map(
+            (order) => `- ${order.quantity} sản phẩm ${order.name}\n`
+        ).join('') +
+        `Vui lòng liên hệ qua email ${listOrder[0].userEmail || 'support@example.com'} để xác nhận.\n` +
+        `Cảm ơn!`
     );
 };
+
 const saveOrderHistory = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
+        if (!req.body.user || !req.body.user.email) {
+            throw new Error("User email is required");
+        }
+        if (!req.body.dataForm || Object.values(req.body.dataForm).length === 0) {
+            throw new Error("Order list is required");
+        }
+
         const listOrder = Object.values(req.body.dataForm);
         const ownerId = new mongoose.Types.ObjectId(req.body.user.ownerId);
         const tax = req.body.tax;
@@ -61,9 +72,15 @@ const saveOrderHistory = async (req, res) => {
         const emailPromises = [];
 
         for (const suppOrders of listOrder) {
-            emailPromises.push(
-                sendEmail(userEmail, "nhập hàng", template(suppOrders))
-            );
+            const supplier = await Suppliers.findById(suppOrders[0].supplierId);
+            if (supplier && supplier.email) {
+                const emailContent = template(suppOrders, savedOrder._id);
+                if (emailContent) {
+                    emailPromises.push(
+                        sendEmail(supplier.email, "Yêu cầu nhập hàng", emailContent)
+                    );
+                }
+            }
 
             const generalStatus = suppOrders.some((item) => item.status === "pending")
                 ? "pending"
@@ -91,7 +108,8 @@ const saveOrderHistory = async (req, res) => {
             }));
             allOrderDetailHistories.push(...orderDetails);
 
-            const loggingOrders = orderDetails.map((detail) => ({
+            const savedOrderDetails = await OrderDetailHistory.insertMany(allOrderDetailHistories, { session });
+            const loggingOrders = savedOrderDetails.map((detail) => ({
                 orderId: savedOrder._id,
                 orderDetailId: detail._id,
                 status: detail.status === "deliveried" ? "deliveried" : "create",
@@ -131,20 +149,26 @@ const saveOrderHistory = async (req, res) => {
             allOrderPromises.push(Products.bulkWrite(productUpdates));
         }
 
-        await Promise.all([...allOrderPromises, ...emailPromises]);
+        const emailResults = await Promise.all(emailPromises);
+        const emailErrors = emailResults.filter(result => !result.success);
+        if (emailErrors.length > 0) {
+            console.warn("Some emails failed to send:", emailErrors);
+        }
 
-        // Commit transaction
+        await Promise.all([...allOrderPromises]);
+
         await session.commitTransaction();
         session.endSession();
 
-        res.status(200).send({ message: "Order history saved successfully!" });
+        res.status(200).send({
+            message: "Order history saved successfully!",
+            emailErrors: emailErrors.length > 0 ? emailErrors : undefined
+        });
     } catch (error) {
-        // Rollback transaction
         await session.abortTransaction();
         session.endSession();
-
         console.error("Error during the transaction:", error);
-        res.status(500).send({ message: "An error occurred during the transaction", error });
+        res.status(500).send({ message: "An error occurred during the transaction", error: error.message });
     }
 };
 
