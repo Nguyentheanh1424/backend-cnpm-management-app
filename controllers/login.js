@@ -5,135 +5,105 @@ const logger = require('../config/logger');
 const { sendCodeMail } = require('../utils/mailer');
 const User = require('../modules/user');
 const UserTemp = require('../modules/user_temp');
+const { sendSuccess, sendError, sendNotFound, sendBadRequest } = require('../utils/responseHandler');
+const { asyncHandler } = require('../utils/errorHandler');
+const { formatUser } = require('../utils/dataFormatter');
 
-// Đăng nhập tài khoản bình thường
-const loginWithEmail = async (req, res) => {
+// Regular email login
+const loginWithEmail = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid email or password' });
-        }
 
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(400).json({ message: 'Invalid email or password' });
-        }
-
-        res.status(200).json({ 
-            message: 'Login successful', 
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                avatar: user.avatar
-            }
-        });
-    } catch (error) {
-        logger.error('Login error:', error);
-        res.status(500).json({ message: 'Error logging in', error });
+    const user = await User.findOne({ email });
+    if (!user) {
+        return sendBadRequest(res, 'Invalid email or password');
     }
-};
 
-// Đăng nhập Google
-const loginWithGoogle = async (req, res) => {
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+        return sendBadRequest(res, 'Invalid email or password');
+    }
+
+    return sendSuccess(res, { 
+        message: 'Login successful', 
+        user: formatUser(user, true)
+    });
+}, { errorMessage: 'Error logging in' });
+
+// Google login
+const loginWithGoogle = asyncHandler(async (req, res) => {
     const { GoogleID, family_name, given_name, email } = req.body;
     const name = `${family_name} ${given_name}`;
-    try {
-        let user = await User.findOne({ GoogleID }) || await User.findOne({ email });
 
-        if (user) {
-            if (!user.GoogleID) {
-                user.GoogleID = GoogleID;
-                await user.save();
-            }
-        } else {
-            user = new User({ GoogleID, name, email });
+    let user = await User.findOne({ GoogleID }) || await User.findOne({ email });
+
+    if (user) {
+        if (!user.GoogleID) {
+            user.GoogleID = GoogleID;
             await user.save();
-
-            return res.status(201).json({ 
-                message: 'Tạo người dùng mới thành công',
-                user: {
-                    _id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    avatar: user.avatar
-                }
-            });
         }
-
-        res.status(200).json({ 
+        return sendSuccess(res, { 
             message: 'Login successful', 
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                avatar: user.avatar
-            }
+            user: formatUser(user, true)
         });
-    } catch (error) {
-        logger.error('Login error:', error);
-        res.status(500).json({ message: 'Error logging in', error });
-    }
-};
+    } else {
+        user = new User({ GoogleID, name, email });
+        await user.save();
 
-// Đăng ký tài khoản
-const registerUser = async (req, res) => {
+        return sendSuccess(res, { 
+            message: 'New user created successfully',
+            user: formatUser(user, true)
+        }, 'New user created successfully', 201);
+    }
+}, { errorMessage: 'Error logging in' });
+
+// User registration
+const registerUser = asyncHandler(async (req, res) => {
     const { name, email } = req.body;
 
-    try {
-        const existed = await User.findOne({ email });
-        if (existed) {
-            return res.status(400).json({ message: 'Email đã tồn tại' });
-        }
-
-        // Generate a random password
-        const generatedPassword = crypto.randomBytes(8).toString('hex');
-        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
-
-        // Create temporary user with auto-generated password
-        const newTempUser = new UserTemp({ 
-            name, 
-            email, 
-            password: hashedPassword,
-            originalPassword: generatedPassword // Store original password to send in email
-        });
-
-        const generatedCode = crypto.randomBytes(3).toString('hex');
-        newTempUser.code = generatedCode;
-        newTempUser.resetCodeExpire = Date.now() + 10 * 60 * 1000;
-
-        try {
-            // First try to send the email with the generated password
-            await sendCodeMail(email, generatedCode, generatedPassword);
-
-            // Only save the temp user if email was sent successfully
-            await UserTemp.deleteMany({ email });
-            await newTempUser.save();
-
-            res.status(201).json({ 
-                message: 'Mã xác nhận đã được gửi đến email!',
-                info: 'Để hoàn tất đăng ký, vui lòng xác thực email của bạn bằng mã xác thực đã được gửi.'
-            });
-        } catch (emailError) {
-            logger.error('Error sending verification email:', emailError);
-            res.status(500).json({ message: 'Không thể gửi email xác nhận. Vui lòng thử lại!' });
-        }
-    } catch (error) {
-        logger.error('Error in sign_up:', error);
-        res.status(500).json({ message: 'Có lỗi xảy ra. Vui lòng thử lại!' });
+    const existed = await User.findOne({ email });
+    if (existed) {
+        return sendBadRequest(res, 'Email already exists');
     }
-};
 
-// Quên mật khẩu
+    // Generate a random password
+    const generatedPassword = crypto.randomBytes(8).toString('hex');
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+    // Create temporary user with auto-generated password
+    const newTempUser = new UserTemp({ 
+        name, 
+        email, 
+        password: hashedPassword,
+        originalPassword: generatedPassword // Store original password to send in email
+    });
+
+    const generatedCode = crypto.randomBytes(3).toString('hex');
+    newTempUser.code = generatedCode;
+    newTempUser.resetCodeExpire = Date.now() + 10 * 60 * 1000;
+
+    try {
+        // First try to send the email with the generated password
+        await sendCodeMail(email, generatedCode, generatedPassword);
+
+        // Only save the temp user if email was sent successfully
+        await UserTemp.deleteMany({ email });
+        await newTempUser.save();
+
+        return sendSuccess(res, { 
+            info: 'To complete registration, please verify your email with the verification code that has been sent.'
+        }, 'Verification code has been sent to your email!', 201);
+    } catch (emailError) {
+        logger.error('Error sending verification email:', emailError);
+        return sendError(res, 'Unable to send verification email. Please try again!', 500, emailError);
+    }
+}, { errorMessage: 'An error occurred. Please try again!', useLogger: true });
+
+// Forgot password
 const sendResetCode = async (req, res) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'Email không tồn tại!' });
+        if (!user) return res.status(404).json({ message: 'Email does not exist!' });
 
         const resetCode = crypto.randomBytes(3).toString('hex');
         user.resetCode = resetCode;
@@ -142,14 +112,14 @@ const sendResetCode = async (req, res) => {
 
         await sendCodeMail(user.email, resetCode);
 
-        res.status(200).json({ message: 'Mã xác nhận đã được gửi đến email của bạn!' });
+        res.status(200).json({ message: 'Verification code has been sent to your email!' });
     } catch (error) {
         logger.error('Error in forgot_password:', error);
-        res.status(500).json({ message: 'Có lỗi xảy ra. Vui lòng thử lại!' });
+        res.status(500).json({ message: 'An error occurred. Please try again!' });
     }
 };
 
-// Đổi mật khẩu sau khi xác thực hoặc xác thực đăng ký
+// Reset password after verification or complete registration
 const resetPassword = async (req, res) => {
     const { email, code, newPassword } = req.body;
     try {
@@ -158,7 +128,7 @@ const resetPassword = async (req, res) => {
         if (tempUser) {
             // This is a registration verification
             if (tempUser.code !== code || tempUser.resetCodeExpire < Date.now()) {
-                return res.status(400).json({ message: 'Mã xác thực không hợp lệ hoặc đã hết hạn!' });
+                return res.status(400).json({ message: 'Invalid verification code or expired!' });
             }
 
             // Create a new user with the provided password or the stored password
@@ -175,7 +145,7 @@ const resetPassword = async (req, res) => {
             await UserTemp.deleteMany({ email });
 
             return res.status(200).json({ 
-                message: 'Tạo người dùng mới thành công',
+                message: 'New user created successfully',
                 user: {
                     _id: newUser._id,
                     name: newUser.name,
@@ -188,11 +158,11 @@ const resetPassword = async (req, res) => {
 
         // If not a registration, then it's a password reset
         const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'Email không tồn tại!' });
+        if (!user) return res.status(404).json({ message: 'Email does not exist!' });
 
         // Verify the reset code
         if (!user.resetCode || user.resetCode !== code || user.resetCodeExpire < Date.now()) {
-            return res.status(400).json({ message: 'Mã xác thực không hợp lệ hoặc đã hết hạn!' });
+            return res.status(400).json({ message: 'Invalid verification code or expired!' });
         }
 
         // Reset the code after successful verification
@@ -206,7 +176,7 @@ const resetPassword = async (req, res) => {
         res.status(200).json({ message: 'Success' });
     } catch (error) {
         logger.error('Error in change_password2:', error);
-        res.status(500).json({ message: 'Có lỗi xảy ra. Vui lòng thử lại!' });
+        res.status(500).json({ message: 'An error occurred. Please try again!' });
     }
 };
 

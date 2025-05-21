@@ -1,4 +1,5 @@
 const Message = require('../modules/message');
+const logger = require('../config/logger');
 
 const saveMessageToDB = async (data)=>{
     const newMessage = new Message({
@@ -9,10 +10,10 @@ const saveMessageToDB = async (data)=>{
 
     try {
         await newMessage.save();
-        console.log('Message saved successfully.');
+        logger.info('Message saved successfully.');
     }
     catch(err){
-        console.error("ERROR saving data to DB: ",err);
+        logger.error("Error saving data to Database: ", err);
     }
 };
 
@@ -30,7 +31,7 @@ module.exports = (io) =>{
         });
 
         socket.on('disconnect', () =>{
-            console.log('User disconnected from chat controller: ', socket.id);
+            logger.info('User disconnected from chat controller: ', socket.id);
         });
     })
 };
@@ -46,7 +47,7 @@ module.exports.getMessages = async (req, res) =>{
         res.json(messages);
     }
     catch(err){
-        console.error('Error fetching messages:', err.message); // Ghi log lỗi vào console
-        res.status(500).json({ error: err.message }); // Chỉ trả về nội dung lỗi thay vì toàn bộ đối tượng lỗi
+        logger.error('Error fetching messages:', err.message);
+        res.status(500).json({ error: err.message });
     }
 };

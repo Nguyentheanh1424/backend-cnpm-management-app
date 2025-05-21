@@ -43,7 +43,7 @@ const router = express.Router();
  *                   description: Percentage change in revenue
  *                 state:
  *                   type: string
- *                   description: State of change (up, down, or notchange)
+ *                   description: State of change (up, down, or not change)
  *       500:
  *         description: Server error
  */
@@ -89,7 +89,7 @@ router.post('/total_revenue', home.totalRevenue);
  *                   description: Percentage change in income
  *                 state:
  *                   type: string
- *                   description: State of change (up, down, or notchange)
+ *                   description: State of change (up, down, or not change)
  *       500:
  *         description: Server error
  */
@@ -135,7 +135,7 @@ router.post('/today_income', home.todayIncome);
  *                   description: Percentage change in new customers
  *                 state:
  *                   type: string
- *                   description: State of change (up, down, or notchange)
+ *                   description: State of change (up, down, or not change)
  *       500:
  *         description: Server error
  */

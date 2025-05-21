@@ -47,7 +47,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/get_bank', bank.get_bank);
+router.post('/get_bank', bank.getBank);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.post('/get_bank', bank.get_bank);
  *       500:
  *         description: Server error
  */
-router.post('/add_bank', bank.add_bank);
+router.post('/add_bank', bank.addBank);
 
 /**
  * @swagger
@@ -128,6 +128,6 @@ router.post('/add_bank', bank.add_bank);
  *       500:
  *         description: Server error
  */
-router.post('/delete_bank', bank.delete_bank);
+router.post('/delete_bank', bank.deleteBank);
 
 module.exports = router;

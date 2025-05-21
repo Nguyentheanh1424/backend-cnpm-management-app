@@ -40,7 +40,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/find_code', sell.find_code);
+router.post('/find_code', sell.findCode);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ router.post('/find_code', sell.find_code);
  *       500:
  *         description: Server error
  */
-router.post('/delete_customer', sell.delete_customer);
+router.post('/delete_customer', sell.deleteCustomer);
 
 /**
  * @swagger
@@ -182,7 +182,7 @@ router.post('/history', sell.history);
  *       500:
  *         description: Server error
  */
-router.post('/get_history', sell.get_history);
+router.post('/get_history', sell.getHistory);
 
 /**
  * @swagger
@@ -222,7 +222,7 @@ router.post('/get_history', sell.get_history);
  *       500:
  *         description: Server error
  */
-router.post('/get_customer', sell.get_customer);
+router.post('/get_customer', sell.getCustomer);
 
 /**
  * @swagger
@@ -274,6 +274,6 @@ router.post('/get_customer', sell.get_customer);
  *       500:
  *         description: Server error
  */
-router.post('/get_history_customer', sell.get_history_customer);
+router.post('/get_history_customer', sell.getHistoryCustomer);
 
 module.exports = router;

@@ -6,7 +6,7 @@ const router = express.Router();
  * @swagger
  * /api/products/show:
  *   post:
- *     summary: Get all products
+ *     summary: Get all product's
  *     tags: [Products]
  *     requestBody:
  *       required: true
@@ -50,7 +50,7 @@ router.post('/show', products.show);
  *       500:
  *         description: Server error
  */
-router.get('/show/:id', products.show_detail);
+router.get('/show/:id', products.showDetail);
 
 /**
  * @swagger
@@ -124,7 +124,7 @@ router.post('/edit', products.edit);
  *       500:
  *         description: Server error
  */
-router.post('/history', products.get_history);
+router.post('/history', products.getHistory);
 
 /**
  * @swagger
@@ -151,7 +151,7 @@ router.post('/history', products.get_history);
  *       500:
  *         description: Server error
  */
-router.post('/get_supplier', products.get_supplier);
+router.post('/get_supplier', products.getSupplier);
 
 /**
  * @swagger
@@ -178,6 +178,6 @@ router.post('/get_supplier', products.get_supplier);
  *       500:
  *         description: Server error
  */
-router.post('/get_history_supplier', products.get_history_supplier);
+router.post('/get_history_supplier', products.getHistorySupplier);
 
 module.exports = router;

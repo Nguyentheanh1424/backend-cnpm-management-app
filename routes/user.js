@@ -6,8 +6,7 @@ const {
     deleteUser, 
     editUser, 
     sendAgain 
-} = require('../controllers/userController');
-const { authenticateToken, isAdmin } = require('../middlewares/auth');
+} = require('../controllers/user');
 
 /**
  * @swagger
@@ -77,7 +76,7 @@ const { authenticateToken, isAdmin } = require('../middlewares/auth');
  *       500:
  *         description: Server error
  */
-router.post('/create', authenticateToken, createUser);
+router.post('/create', createUser);
 
 /**
  * @swagger
@@ -137,7 +136,7 @@ router.post('/create', authenticateToken, createUser);
  *       500:
  *         description: Server error
  */
-router.post('/resend', authenticateToken, sendAgain);
+router.post('/resend', sendAgain);
 
 /**
  * @swagger
@@ -164,14 +163,14 @@ router.post('/resend', authenticateToken, sendAgain);
  *       500:
  *         description: Server error
  */
-router.get('/list', authenticateToken, showUser);
+router.get('/list', showUser);
 
 /**
  * @swagger
  * /api/user/{id}:
  *   delete:
  *     summary: Delete a user
- *     tags: [User Management]
+ *     tag: [User Management]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -189,7 +188,7 @@ router.get('/list', authenticateToken, showUser);
  *       500:
  *         description: Server error
  */
-router.delete('/:id', authenticateToken, deleteUser);
+router.delete('/:id', deleteUser);
 
 /**
  * @swagger
@@ -235,6 +234,6 @@ router.delete('/:id', authenticateToken, deleteUser);
  *       500:
  *         description: Server error
  */
-router.put('/:id', authenticateToken, editUser);
+router.put('/:id', editUser);
 
 module.exports = router;

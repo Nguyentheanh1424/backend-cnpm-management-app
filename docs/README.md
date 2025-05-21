@@ -6,7 +6,7 @@ This directory contains comprehensive documentation for the backend CNPM managem
 ## Directory Structure
 
 - **[controllers/](controllers/index.md)** - Documentation for all controller files, which handle HTTP requests and business logic
-- **utils/** - Documentation for utility functions and helper modules (to be added)
+- **[utils/](utils/index.md)** - Documentation for utility functions and helper modules
 - **modules/** - Documentation for data models and database schemas (to be added)
 - **middlewares/** - Documentation for middleware functions (to be added)
 

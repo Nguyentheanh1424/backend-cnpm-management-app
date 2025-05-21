@@ -4,6 +4,7 @@ const Cloudinary = require('cloudinary').v2;
 const Suppliers = require('../modules/supplier');
 const SupplierChangeHistory = require('../modules/history_change_supplier');
 const mongoose = require('mongoose');
+const logger = require('../config/logger');
 
 Cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,19 +12,19 @@ Cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-// Lấy ds sản phẩm
+// Get a product list
 const show = async (req, res) => {
     const {user} = req.body;
     try {
         const products = await Product.find({owner: user.id_owner});
         res.json(products);
     } catch (error) {
-        console.error('show error:', error);
+        logger.error('Error fetching products:', error);
         res.status(500).json({message: 'Internal server error'});
     }
 };
 
-// Chỉnh sửa sản phẩm
+// Edit product
 const edit = async (req, res) => {
     const {user, product_edit, detail, check} = req.body;
     try {
@@ -34,9 +35,9 @@ const edit = async (req, res) => {
             const publicId = product.image.public_id;
             const result = await Cloudinary.uploader.destroy(publicId);
             if (result.error) {
-                console.error("Error deleting image from Cloudinary:", result.error);
+                logger.error("Error deleting image from Cloudinary:", result.error);
             }
-            console.log("Cloudinary delete result:", result);
+            logger.info("Cloudinary delete result:", result);
         }
 
         const oldProduct = JSON.parse(JSON.stringify(product));
@@ -79,17 +80,17 @@ const edit = async (req, res) => {
             try {
                 await history.save();
             } catch (err) {
-                console.error('Error saving history:', err);
+                logger.error('Error saving product history:', err);
             }
         }
         res.json({message: "success"});
     } catch (error) {
-        console.error('Server Error:', error);
+        logger.error('Error updating product:', error);
         res.status(500).json({message: 'Server error', error: error.message});
     }
 };
 
-// Xóa sản phẩm
+// Delete product
 const deletes = async (req, res) => {
     const {user, product_delete, detail} = req.body;
     try {
@@ -113,22 +114,23 @@ const deletes = async (req, res) => {
             const publicId = product.image.public_id;
             const result = await Cloudinary.uploader.destroy(publicId);
             if (result.error) {
-                console.error('Error deleting image from Cloudinary:', result.error);
+                logger.error('Error deleting image from Cloudinary:', result.error);
             }
-            console.log('Cloudinary delete result:', result);
+            logger.info('Cloudinary delete result:', result);
         }
         res.status(200).json({message: 'Product deleted successfully'});
     } catch (error) {
+        logger.error('Error deleting product:', error);
         res.status(500).json({message: error.message});
     }
 };
 
-// Lấy chi tiết sản phẩm
-const show_detail = async (req, res) => {
+// Get product details
+const showDetail = async (req, res) => {
     try {
         const product = await Product.findOne({_id: req.params.id})
             .populate("supplier")
-            .lean(); // chuyển đổi tài liệu thành đối tượng JavaScript thuần túy
+            .lean();
         if (!product) {
             return res.status(404).json({message: 'Product not found'});
         }
@@ -139,15 +141,13 @@ const show_detail = async (req, res) => {
     }
 };
 
-// Tạo sản phẩm mới
+// Create a new product
 const create = async (req, res) => {
     const {user, newPr, detail} = req.body;
-    console.log({
-        ...newPr,
-    });
+    logger.info(`Creating new product: ${JSON.stringify(newPr)}`);
     const Check = await Product.find({owner: user.id_owner, sku: newPr.sku})
     if (Check.length > 0) {
-        return res.status(500).json({message: 'sku đã bị trùng'});
+        return res.status(500).json({message: 'SKU already exists'});
     }
     try {
         const newProduct = new Product({
@@ -170,13 +170,13 @@ const create = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Error in get_history:', error); // Log lỗi chi tiết
+        logger.error('Error creating product:', error);
         res.status(500).json({message: error.message});
     }
 };
 
-// Lấy lịch sử thay đổi sản phẩm
-const get_history = async (req, res) => {
+// Get product change history
+const getHistory = async (req, res) => {
     const {user} = req.body;
     try {
         const activities = await History.find({owner: user.id_owner})
@@ -186,12 +186,12 @@ const get_history = async (req, res) => {
             .lean();
         res.status(200).json(activities);
     } catch (error) {
-        console.error('Error in get_history:', error);
+        logger.error('Error fetching product history:', error);
         res.status(500).json({message: error.message});
     }
 };
 
-const get_supplier = async (req, res) => {
+const getSupplier = async (req, res) => {
     const {user} = req.body;
     try {
         const suppliers = await Suppliers.find({owner: user.id_owner})
@@ -205,18 +205,18 @@ const get_supplier = async (req, res) => {
             res.status(500).json({message: "Error"});
         }
     } catch (error) {
-        console.error('show error:', error);
+        logger.error('Error fetching suppliers:', error);
         res.status(500).json({message: 'Internal server error'});
     }
 };
 
-// Tạo nhà cung cấp mới
-const create_supplier = async (req, res) => {
+// Create a new supplier
+const createSupplier = async (req, res) => {
     const {name, email, phone, address, user} = req.body;
     try {
         let check = await Suppliers.findOne({owner: user.id_owner, phone});
         if (check) {
-            return res.status(500).json({message: 'Số điện thoại đã tồn tại'});
+            return res.status(500).json({message: 'Phone number already exists'});
         }
         let new_supplier = new Suppliers({
             name,
@@ -228,18 +228,18 @@ const create_supplier = async (req, res) => {
         await new_supplier.save();
         res.json({new_supplier, message: "success"});
     } catch (error) {
-        console.error('show error:', error);
+        logger.error('Error creating supplier:', error);
         res.status(500).json({message: 'Internal server error'});
     }
 };
 
-// Chỉnh sửa nhà cung cấp
-const edit_supplier = async (req, res) => {
+// Edit supplier
+const editSupplier = async (req, res) => {
     const {user, supplier_edit} = req.body;
     try {
         let supplier = await Suppliers.find({_id: supplier_edit._id});
         if (supplier.length == 0) {
-            return res.json({message: "Không tìm thấy supplier"});
+            return res.json({message: "Supplier not found"});
         }
         supplier = supplier[0];
         let check = await Suppliers.findOne({
@@ -248,12 +248,12 @@ const edit_supplier = async (req, res) => {
             phone: supplier_edit.phone
         });
         if (check) {
-            console.log(check)
-            return res.json({message: "Số điện thoại này đã được đăng ký"});
+            logger.warn(`Phone number ${supplier_edit.phone} already registered to another supplier`);
+            return res.json({message: "This phone number is already registered"});
         }
         const oldProduct = JSON.parse(JSON.stringify(supplier));
 
-        // Cập nhật thông tin sản phẩm
+        // Update product information
         supplier = await Suppliers.findByIdAndUpdate(
             supplier_edit._id,
             supplier_edit,
@@ -266,7 +266,7 @@ const edit_supplier = async (req, res) => {
 
         const updatedFields = Object.keys(supplier_edit);
 
-        // Loại bỏ trường createdAt khỏi danh sách thay đổi
+        // Filter out the createdAt field from the list of changes
         const filteredFields = updatedFields.filter(field => {
             if (field == 'creator' || field == 'owner') {
                 return false;
@@ -275,14 +275,12 @@ const edit_supplier = async (req, res) => {
             return oldProduct[field] !== supplier_edit[field]
         });
 
-        console.log(filteredFields)
+        logger.debug(`Fields changed in supplier: ${JSON.stringify(filteredFields)}`);
         if (filteredFields.length > 0) {
-            // Lấy các thay đổi chi tiết (so sánh cũ và mới)
             const changes = filteredFields.map(field => {
                 const oldValue = oldProduct[field];
                 const newValue = supplier_edit[field];
 
-                // Ghi lại thay đổi theo format "field changed from oldValue to newValue"
                 return `${field} changed from '${oldValue}' to '${newValue}'`;
             });
 
@@ -291,24 +289,24 @@ const edit_supplier = async (req, res) => {
                 employee: user._id,
                 supplier: supplier_edit.name,
                 action: 'update',
-                details: `${changes.join(', ')}. `  // Thêm chi tiết thay đổi vào lịch sử
+                details: `${changes.join(', ')}. `  // Add change details to history
             });
 
             try {
                 await history.save();
             } catch (err) {
-                console.error('Error saving history:', err);
+                logger.error('Error saving supplier history:', err);
             }
         }
         res.json({message: "success"});
     } catch (error) {
-        console.error('Server Error:', error);
+        logger.error('Error updating supplier:', error);
         res.status(500).json({message: 'Server error', error: error.message});
     }
 };
 
-// Lấy lịch sử thay đổi
-const get_history_supplier = async (req, res) => {
+// Get change history
+const getHistorySupplier = async (req, res) => {
     const {user} = req.body;
     try {
         const activities = await SupplierChangeHistory.find({owner: user.id_owner})
@@ -319,18 +317,18 @@ const get_history_supplier = async (req, res) => {
             .lean();
         res.status(200).json(activities);
     } catch (error) {
-        console.error('Error in get_history:', error);
+        logger.error('Error fetching supplier history:', error);
         res.status(500).json({message: error.message});
     }
 };
 
-// Xóa nhà cung cấp
-const delete_supplier=async(req,res)=>{
+// Delete supplier
+const deleteSupplier=async(req, res)=>{
     const { user,supplier_delete,detail } = req.body;
     try {
         const supplier = await Suppliers.findByIdAndDelete(supplier_delete._id);
         if (!supplier) {
-            return res.status(404).json({ message: 'supplier not found' });
+            return res.status(404).json({ message: 'Supplier not found' });
         }
         const history = new supplierCHistory({
             owner: user.id_owner,
@@ -346,12 +344,12 @@ const delete_supplier=async(req,res)=>{
     }
 };
 
-// Lấy sản pẩm theo nhà cung cấp
+// Get products by supplier
 const getProductsBySupplier = async (req, res) => {
     const { productId,ownerId } = req.query;
-    console.log(productId,ownerId)
+    logger.info(`Fetching products for supplier ID: ${productId}, owner ID: ${ownerId}`);
     const objectIdSupplierId = new mongoose.Types.ObjectId(productId);
-    // Kiểm tra xem productId có tồn tại trong query params không
+    // Check if productId exists in query params
     if (!productId) {
         return res.status(400).json({ error: "Product ID is required" });
     }
@@ -394,19 +392,19 @@ const getProductsBySupplier = async (req, res) => {
                 .status(404)
                 .json({ message: "No products found for this supplier" });
         }
-        // Trả về danh sách sản phẩm nếu tìm thấy
+        // Return the list of products if found
         res.status(200).json(products);
     } catch (error) {
-        console.error("Error fetching products by supplier:", error);
+        logger.error("Error fetching products by supplier:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
 
-// Tìm sản phẩm theo tên
+// Search products by name
 const getProductsByProductName = async (req, res) => {
     const { query,ownerId } = req.query;
     const objectProductId = query;
-    console.log(query,ownerId)
+    logger.info(`Searching products with name: "${query}", owner ID: ${ownerId}`)
     if (!objectProductId) {
         return res.status(400).json({ error: "Product ID is required" });
     }
@@ -452,30 +450,26 @@ const getProductsByProductName = async (req, res) => {
                 .status(404)
                 .json({ message: "No products found for this supplier" });
         }
-        // Trả về danh sách sản phẩm nếu tìm thấy
+        // Return the list of products if found
         res.status(200).json(products);
     } catch (error) {
-        console.error("Error fetching products by supplier:", error);
+        logger.error("Error searching products by name:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
 
-// Xuất tất cả các hàm dưới dạng một đối tượng để sử dụng trong các routes
 module.exports = {
     show,
     edit,
     deletes,
-    show_detail,
+    showDetail,
     create,
-    get_history,
-    get_supplier,
-    create_supplier,
-    edit_supplier,
-    get_history_supplier,
-    delete_supplier,
+    getHistory,
+    getSupplier,
+    createSupplier,
+    editSupplier,
+    getHistorySupplier,
+    deleteSupplier,
     getProductsBySupplier,
     getProductsByProductName,
 }
-
-
-

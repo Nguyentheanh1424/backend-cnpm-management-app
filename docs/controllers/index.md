@@ -5,7 +5,7 @@ This directory contains documentation for all controllers in the application. Ea
 ## Available Controllers
 
 - [Bank Controller](bank.md) - Manages bank account operations
-- [Calendar Controller](calendarController.md) - Manages event scheduling and calendar functionality
+- [Calendar Controller](calendar.md) - Manages event scheduling and calendar functionality
 - [Chat Controller](chat.md) - Handles real-time messaging functionality
 - [Home Controller](home.md) - Provides dashboard metrics and reporting
 - [Login Controller](login.md) - Handles user authentication and registration
