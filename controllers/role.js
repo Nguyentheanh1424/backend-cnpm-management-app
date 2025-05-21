@@ -50,14 +50,14 @@ const edit_role = async (req, res) => {
     try{
         const rolesWithPermissions = req.body.permissions;
         for (const role of rolesWithPermissions) {
-            const updateRole = await roles.findByIdAndUpdate(
+            const updatedRole = await roles.findByIdAndUpdate(
                 role.id,
                 {permissions: role.permissions},
                 {new: true}
             );
 
             if (role.newRoleName && role.newRoleName !== updatedRole.role) {
-                await Users.updateMany(
+                await users.updateMany(
                     {role: updatedRole.role},
                     {role: role.newRoleName}
                 );
