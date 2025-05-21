@@ -1,5 +1,9 @@
 const express = require('express');
-const bank = require('../controllers/bank.js'); // Import controller
+const {
+    getBank,
+    addBank,
+    deleteBank
+} = require('../controllers/bank.js'); // Import controller
 
 const router = express.Router();
 
@@ -47,7 +51,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/get_bank', bank.getBank);
+router.post('/get_bank', getBank);
 
 /**
  * @swagger
@@ -89,7 +93,7 @@ router.post('/get_bank', bank.getBank);
  *       500:
  *         description: Server error
  */
-router.post('/add_bank', bank.addBank);
+router.post('/add_bank', addBank);
 
 /**
  * @swagger
@@ -128,6 +132,6 @@ router.post('/add_bank', bank.addBank);
  *       500:
  *         description: Server error
  */
-router.post('/delete_bank', bank.deleteBank);
+router.post('/delete_bank', deleteBank);
 
 module.exports = router;

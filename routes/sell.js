@@ -1,5 +1,13 @@
 const express = require('express');
-const sell = require('../controllers/sell'); // Import controller
+const {
+    findCode,
+    deleteCustomer,
+    history,
+    getHistory,
+    getCustomer,
+    getHistoryCustomer
+} = require('../controllers/sell');
+
 const router = express.Router();
 
 /**
@@ -40,7 +48,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/find_code', sell.findCode);
+router.post('/find_code', findCode);
 
 /**
  * @swagger
@@ -85,7 +93,7 @@ router.post('/find_code', sell.findCode);
  *       500:
  *         description: Server error
  */
-router.post('/delete_customer', sell.deleteCustomer);
+router.post('/delete_customer', deleteCustomer);
 
 /**
  * @swagger
@@ -147,7 +155,7 @@ router.post('/delete_customer', sell.deleteCustomer);
  *       500:
  *         description: Server error
  */
-router.post('/history', sell.history);
+router.post('/history', history);
 
 /**
  * @swagger
@@ -182,7 +190,7 @@ router.post('/history', sell.history);
  *       500:
  *         description: Server error
  */
-router.post('/get_history', sell.getHistory);
+router.post('/get_history', getHistory);
 
 /**
  * @swagger
@@ -222,7 +230,7 @@ router.post('/get_history', sell.getHistory);
  *       500:
  *         description: Server error
  */
-router.post('/get_customer', sell.getCustomer);
+router.post('/get_customer', getCustomer);
 
 /**
  * @swagger
@@ -274,6 +282,6 @@ router.post('/get_customer', sell.getCustomer);
  *       500:
  *         description: Server error
  */
-router.post('/get_history_customer', sell.getHistoryCustomer);
+router.post('/get_history_customer', getHistoryCustomer);
 
 module.exports = router;

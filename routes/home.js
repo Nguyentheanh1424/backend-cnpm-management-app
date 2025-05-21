@@ -1,5 +1,15 @@
 const express = require('express');
-const home = require('../controllers/home.js');
+const {
+    totalRevenue,
+    todayIncome,
+    newCustomer,
+    totalPending,
+    generateCustomerReport,
+    generateDailySale,
+    generateDailyCustomer,
+    generateTopProduct,
+    recentActivity,
+} = require('../controllers/home.js');
 
 const router = express.Router();
 
@@ -47,7 +57,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/total_revenue', home.totalRevenue);
+router.post('/total_revenue', totalRevenue);
 
 /**
  * @swagger
@@ -93,7 +103,7 @@ router.post('/total_revenue', home.totalRevenue);
  *       500:
  *         description: Server error
  */
-router.post('/today_income', home.todayIncome);
+router.post('/today_income', todayIncome);
 
 /**
  * @swagger
@@ -139,7 +149,7 @@ router.post('/today_income', home.todayIncome);
  *       500:
  *         description: Server error
  */
-router.post('/new_customer', home.newCustomer);
+router.post('/new_customer', newCustomer);
 
 /**
  * @swagger
@@ -176,7 +186,7 @@ router.post('/new_customer', home.newCustomer);
  *       500:
  *         description: Server error
  */
-router.post('/total_pending', home.totalPending);
+router.post('/total_pending', totalPending);
 
 /**
  * @swagger
@@ -209,7 +219,7 @@ router.post('/total_pending', home.totalPending);
  *       500:
  *         description: Server error
  */
-router.post('/customer_report', home.generateCustomerReport);
+router.post('/customer_report', generateCustomerReport);
 
 /**
  * @swagger
@@ -244,7 +254,7 @@ router.post('/customer_report', home.generateCustomerReport);
  *       500:
  *         description: Server error
  */
-router.post('/daily_sale', home.generateDailySale);
+router.post('/daily_sale', generateDailySale);
 
 /**
  * @swagger
@@ -279,7 +289,7 @@ router.post('/daily_sale', home.generateDailySale);
  *       500:
  *         description: Server error
  */
-router.post('/daily_customer', home.generateDailyCustomer);
+router.post('/daily_customer', generateDailyCustomer);
 
 /**
  * @swagger
@@ -314,7 +324,7 @@ router.post('/daily_customer', home.generateDailyCustomer);
  *       500:
  *         description: Server error
  */
-router.post('/top_product', home.generateTopProduct);
+router.post('/top_product', generateTopProduct);
 
 /**
  * @swagger
@@ -349,6 +359,6 @@ router.post('/top_product', home.generateTopProduct);
  *       500:
  *         description: Server error
  */
-router.post('/recent_activity', home.recentActivity);
+router.post('/recent_activity', recentActivity);
 
 module.exports = router;

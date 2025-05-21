@@ -1,5 +1,10 @@
 const express = require('express');
-const calender = require('../controllers/calendar');
+const {
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    getEvent
+} = require('../controllers/calendar');
 
 const router = express.Router();
 
@@ -56,7 +61,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.post('/create', calender.createEvent);
+router.post('/create', createEvent);
 
 /**
  * @swagger
@@ -111,7 +116,7 @@ router.post('/create', calender.createEvent);
  *       500:
  *         description: Server error
  */
-router.put('/update/:id', calender.updateEvent);
+router.put('/update/:id', updateEvent);
 
 /**
  * @swagger
@@ -149,7 +154,7 @@ router.put('/update/:id', calender.updateEvent);
  *       500:
  *         description: Server error
  */
-router.delete('/delete/:id', calender.deleteEvent);
+router.delete('/delete/:id', deleteEvent);
 
 /**
  * @swagger
@@ -194,6 +199,6 @@ router.delete('/delete/:id', calender.deleteEvent);
  *       500:
  *         description: Server error
  */
-router.get('/show', calender.getEvent)
+router.get('/show', getEvent)
 
 module.exports = router;
