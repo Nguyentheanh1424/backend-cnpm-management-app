@@ -6,8 +6,8 @@ const {
     getHistory,
     getCustomer,
     getHistoryCustomer,
-    create_customer,
-    edit_customer
+    createCustomer,
+    editCustomer
 } = require('../controllers/sell');
 const { validateUserPermission } = require('../middlewares/auth');
 const router = express.Router();
@@ -89,7 +89,7 @@ router.post('/find_code', findCode);
  *       500:
  *         description: Server error
  */
-router.post('/create_customer', validateUserPermission("create_customer"), create_customer);
+router.post('/create_customer', validateUserPermission("create_customer"), createCustomer);
 
 /**
  * @swagger
@@ -133,7 +133,7 @@ router.post('/create_customer', validateUserPermission("create_customer"), creat
  *       500:
  *         description: Server error
  */
-router.post('/edit_customer', validateUserPermission("edit_customer"), edit_customer);
+router.post('/edit_customer', validateUserPermission("edit_customer"), editCustomer);
 
 /**
  * @swagger

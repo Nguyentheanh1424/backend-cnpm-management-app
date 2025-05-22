@@ -8,9 +8,9 @@ const {
     getHistorySupplier,
     deletes,
     create,
-    create_supplier,
-    edit_supplier,
-    delete_supplier
+    createSupplier,
+    editSupplier,
+    deleteSupplier
 } = require('../controllers/product');
 const { validateUserPermission } = require('../middlewares/auth');
 const router = express.Router();
@@ -274,7 +274,7 @@ router.post('/get_supplier', getSupplier);
  *       500:
  *         description: Server error
  */
-router.post('/create_supplier', validateUserPermission("create_supplier"), create_supplier);
+router.post('/create_supplier', validateUserPermission("create_supplier"), createSupplier);
 
 /**
  * @swagger
@@ -315,7 +315,7 @@ router.post('/create_supplier', validateUserPermission("create_supplier"), creat
  *       500:
  *         description: Server error
  */
-router.post('/edit_supplier', validateUserPermission("edit_supplier"), edit_supplier);
+router.post('/edit_supplier', validateUserPermission("edit_supplier"), editSupplier);
 /**
  * @swagger
  * /api/products/delete_supplier:
@@ -349,7 +349,7 @@ router.post('/edit_supplier', validateUserPermission("edit_supplier"), edit_supp
  *       500:
  *         description: Server error
  */
-router.post('/delete_supplier', validateUserPermission("delete_supplier"), delete_supplier);
+router.post('/delete_supplier', validateUserPermission("delete_supplier"), deleteSupplier);
 
 /**
  * @swagger
