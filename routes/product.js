@@ -5,8 +5,14 @@ const {
     edit,
     getHistory,
     getSupplier,
-    getHistorySupplier
-} = require('../controllers/product'); // Import controller
+    getHistorySupplier,
+    deletes,
+    create,
+    create_supplier,
+    edit_supplier,
+    delete_supplier
+} = require('../controllers/product');
+const { validateUserPermission } = require('../middlewares/auth');
 const router = express.Router();
 
 /**
@@ -104,7 +110,81 @@ router.get('/show/:id', showDetail);
  *       500:
  *         description: Server error
  */
-router.post('/edit', edit);
+router.post('/edit', validateUserPermission("edit_product"), edit);
+
+/**
+ * @swagger
+ * /api/products/deletes:
+ *   post:
+ *     summary: Delete a product
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               product:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/deletes', validateUserPermission("delete_product"), deletes);
+
+/**
+ * @swagger
+ * /api/products/create:
+ *   post:
+ *     summary: Create a new product
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               product:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Product name
+ *                   price:
+ *                     type: number
+ *                     description: Product price
+ *                   stock_in_shelf:
+ *                     type: number
+ *                     description: Stock in shelf
+ *     responses:
+ *       200:
+ *         description: Product created successfully
+ *       500:
+ *         description: Server error
+ */
+router.post('/create', validateUserPermission("add_product"), create);
 
 /**
  * @swagger
@@ -159,6 +239,117 @@ router.post('/history', getHistory);
  *         description: Server error
  */
 router.post('/get_supplier', getSupplier);
+
+/**
+ * @swagger
+ * /api/products/create_supplier:
+ *   post:
+ *     summary: Create a new supplier
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               supplier:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Supplier name
+ *                   contact:
+ *                     type: string
+ *                     description: Supplier contact
+ *     responses:
+ *       200:
+ *         description: Supplier created successfully
+ *       500:
+ *         description: Server error
+ */
+router.post('/create_supplier', validateUserPermission("create_supplier"), create_supplier);
+
+/**
+ * @swagger
+ * /api/products/edit_supplier:
+ *   post:
+ *     summary: Edit a supplier
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               supplier:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Supplier ID
+ *                   name:
+ *                     type: string
+ *                     description: Supplier name
+ *                   contact:
+ *                     type: string
+ *                     description: Supplier contact
+ *     responses:
+ *       200:
+ *         description: Supplier updated successfully
+ *       404:
+ *         description: Supplier not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/edit_supplier', validateUserPermission("edit_supplier"), edit_supplier);
+/**
+ * @swagger
+ * /api/products/delete_supplier:
+ *   post:
+ *     summary: Delete a supplier
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               supplier:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Supplier ID
+ *     responses:
+ *       200:
+ *         description: Supplier deleted successfully
+ *       404:
+ *         description: Supplier not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/delete_supplier', validateUserPermission("delete_supplier"), delete_supplier);
 
 /**
  * @swagger

@@ -5,9 +5,11 @@ const {
     history,
     getHistory,
     getCustomer,
-    getHistoryCustomer
+    getHistoryCustomer,
+    create_customer,
+    edit_customer
 } = require('../controllers/sell');
-
+const { validateUserPermission } = require('../middlewares/auth');
 const router = express.Router();
 
 /**
@@ -52,6 +54,89 @@ router.post('/find_code', findCode);
 
 /**
  * @swagger
+ * /api/sell/create_customer:
+ *   post:
+ *     summary: Create a new customer
+ *     tags: [Sell]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user
+ *               - customer
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               customer:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Customer name
+ *                   phone:
+ *                     type: string
+ *                     description: Customer phone
+ *     responses:
+ *       200:
+ *         description: Customer created successfully
+ *       500:
+ *         description: Server error
+ */
+router.post('/create_customer', validateUserPermission("create_customer"), create_customer);
+
+/**
+ * @swagger
+ * /api/sell/edit_customer:
+ *   post:
+ *     summary: Edit a customer
+ *     tags: [Sell]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user
+ *               - customer
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *               customer:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Customer ID
+ *                   name:
+ *                     type: string
+ *                     description: Customer name
+ *                   phone:
+ *                     type: string
+ *                     description: Customer phone
+ *     responses:
+ *       200:
+ *         description: Customer updated successfully
+ *       404:
+ *         description: Customer not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/edit_customer', validateUserPermission("edit_customer"), edit_customer);
+
+/**
+ * @swagger
  * /api/sell/delete_customer:
  *   post:
  *     summary: Delete a customer
@@ -93,7 +178,7 @@ router.post('/find_code', findCode);
  *       500:
  *         description: Server error
  */
-router.post('/delete_customer', deleteCustomer);
+router.post('/delete_customer', validateUserPermission("delete_customer"), deleteCustomer);
 
 /**
  * @swagger
@@ -155,7 +240,7 @@ router.post('/delete_customer', deleteCustomer);
  *       500:
  *         description: Server error
  */
-router.post('/history', history);
+router.post('/history', validateUserPermission("create_bill"), history);
 
 /**
  * @swagger
