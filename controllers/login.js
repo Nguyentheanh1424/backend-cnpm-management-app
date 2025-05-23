@@ -5,7 +5,7 @@ const logger = require('../config/logger');
 const { sendCodeMail } = require('../utils/mailer');
 const User = require('../modules/user');
 const UserTemp = require('../modules/user_temp');
-const { sendSuccess, sendError, sendNotFound, sendBadRequest } = require('../utils/responseHandler');
+const { sendSuccess, sendError, sendBadRequest } = require('../utils/responseHandler');
 const { asyncHandler } = require('../utils/errorHandler');
 const { formatUser } = require('../utils/dataFormatter');
 
@@ -30,9 +30,13 @@ const loginWithEmail = asyncHandler(async (req, res) => {
 }, { errorMessage: 'Error logging in' });
 
 // Google login
+// Mã này không xác minh id_token với Google, nếu triển khai thì cần bổ sung xác minh client.
 const loginWithGoogle = asyncHandler(async (req, res) => {
-    const { GoogleID, family_name, given_name, email } = req.body;
-    const name = `${family_name} ${given_name}`;
+    const { GoogleID, email, name, avatar } = req.body;
+
+    if (!email || !GoogleID) {
+        return sendBadRequest(res, 'Missing required Google account info');
+    }
 
     let user = await User.findOne({ GoogleID }) || await User.findOne({ email });
 
@@ -41,20 +45,27 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
             user.GoogleID = GoogleID;
             await user.save();
         }
-        return sendSuccess(res, { 
-            message: 'Login successful', 
+
+        return sendSuccess(res, {
+            message: 'Login successful',
             user: formatUser(user, true)
         });
     } else {
-        user = new User({ GoogleID, name, email });
+        user = new User({
+            GoogleID,
+            email,
+            name,
+            avatar
+        });
         await user.save();
 
-        return sendSuccess(res, { 
+        return sendSuccess(res, {
             message: 'New user created successfully',
             user: formatUser(user, true)
         }, 'New user created successfully', 201);
     }
-}, { errorMessage: 'Error logging in' });
+}, { errorMessage: 'Error logging in with Google' });
+
 
 // User registration
 const registerUser = asyncHandler(async (req, res) => {
@@ -74,7 +85,7 @@ const registerUser = asyncHandler(async (req, res) => {
         name, 
         email, 
         password: hashedPassword,
-        originalPassword: generatedPassword // Store original password to send in email
+        originalPassword: generatedPassword // Store the original password to send in email
     });
 
     const generatedCode = crypto.randomBytes(3).toString('hex');
@@ -82,10 +93,10 @@ const registerUser = asyncHandler(async (req, res) => {
     newTempUser.resetCodeExpire = Date.now() + 10 * 60 * 1000;
 
     try {
-        // First try to send the email with the generated password
+        // First, try to send the email with the generated password
         await sendCodeMail(email, generatedCode, generatedPassword);
 
-        // Only save the temp user if email was sent successfully
+        // Only save the temp user if the email was sent successfully
         await UserTemp.deleteMany({ email });
         await newTempUser.save();
 
@@ -123,10 +134,10 @@ const sendResetCode = async (req, res) => {
 const resetPassword = async (req, res) => {
     const { email, code, newPassword } = req.body;
     try {
-        // First check if this is a registration verification
+        // First, check if this is registration verification
         const tempUser = await UserTemp.findOne({ email });
         if (tempUser) {
-            // This is a registration verification
+            // This is registration verification
             if (tempUser.code !== code || tempUser.resetCodeExpire < Date.now()) {
                 return res.status(400).json({ message: 'Invalid verification code or expired!' });
             }
@@ -136,18 +147,21 @@ const resetPassword = async (req, res) => {
                 ? await bcrypt.hash(newPassword, 10) 
                 : tempUser.password;
 
-            const newUser = new User({ 
+            const newUser = new User({
                 name: tempUser.name, 
-                email: tempUser.email, 
+                email: tempUser.email,
+                role: tempUser.role,
+                avatar: tempUser.avatar,
                 password: hashedPassword 
             });
+
+
             await newUser.save();
             await UserTemp.deleteMany({ email });
 
             return res.status(200).json({ 
                 message: 'New user created successfully',
                 user: {
-                    _id: newUser._id,
                     name: newUser.name,
                     email: newUser.email,
                     role: newUser.role,
