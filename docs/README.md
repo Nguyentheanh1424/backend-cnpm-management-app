@@ -6,18 +6,18 @@ This directory contains comprehensive documentation for the backend CNPM managem
 ## Directory Structure
 
 - **[controllers/](controllers/index.md)** - Documentation for all controller files, which handle HTTP requests and business logic
-- **[utils/](utils/index.md)** - Documentation for utility functions and helper modules
-- **modules/** - Documentation for data models and database schemas (to be added)
-- **middlewares/** - Documentation for middleware functions (to be added)
+  - **[utils/](utils/index.md)** - Documentation for utility functions and helper modules
+  - **modules/** - Documentation for data models and database schemas (to be added)
+  - **middlewares/** - Documentation for middleware functions (to be added)
 
 ## Purpose
 
 This documentation serves several purposes:
 
 1. **Code Understanding** - Provides clear explanations of how each component works without having to read through the code
-2. **Onboarding** - Helps new developers quickly understand the project structure and functionality
-3. **Maintenance** - Makes it easier to maintain and update the codebase by providing a reference for how components should work
-4. **API Reference** - Serves as a reference for the API endpoints and their expected behavior
+   2. **Onboarding** - Helps new developers quickly understand the project structure and functionality
+   3. **Maintenance** - Makes it easier to maintain and update the codebase by providing a reference for how components should work
+   4. **API Reference** - Serves as a reference for the API endpoints and their expected behavior
 
 ## Contribution
 
