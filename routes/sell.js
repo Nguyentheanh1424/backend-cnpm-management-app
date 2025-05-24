@@ -1,22 +1,22 @@
 const express = require('express');
 const {
     findCode,
-    deleteCustomer,
+    getCustomer,
+    createCustomer,
     history,
     getHistory,
-    getCustomer,
     getHistoryCustomer,
-    createCustomer,
-    editCustomer
+    editCustomer,
+    deleteCustomer
 } = require('../controllers/sell');
 const { validateUserPermission } = require('../middlewares/auth');
 const router = express.Router();
 
 /**
  * @swagger
- * /api/sell/find_code:
+ * /api/sell/findCode:
  *   post:
- *     summary: Get products for a specific user
+ *     summary: Get list of products for a specific user
  *     tags: [Sell]
  *     requestBody:
  *       required: true
@@ -29,32 +29,78 @@ const router = express.Router();
  *             properties:
  *               user:
  *                 type: object
+ *                 required:
+ *                   - id_owner
  *                 properties:
  *                   id_owner:
  *                     type: string
  *                     description: The user's owner ID
+ *                   role:
+ *                     type: string
+ *                     description: User role
  *     responses:
  *       200:
- *         description: List of products
+ *         description: List of formatted products
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 product:
+ *                 products:
  *                   type: array
  *                   items:
- *                     type: object
- *                 message:
- *                   type: string
+ *                     $ref: '#/components/schemas/Product'
  *       500:
- *         description: Server error
+ *         description: Error retrieving products
  */
-router.post('/find_code', findCode);
+router.post('/findCode', findCode);
 
 /**
  * @swagger
- * /api/sell/create_customer:
+ * /api/sell/getCustomer:
+ *   post:
+ *     summary: Get list of customers for a specific user
+ *     tags: [Sell]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 required:
+ *                   - id_owner
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *                   role:
+ *                     type: string
+ *                     description: User role
+ *     responses:
+ *       200:
+ *         description: List of formatted customers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 customers:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Customer'
+ *       500:
+ *         description: Error retrieving customers
+ */
+router.post('/getCustomer', getCustomer);
+
+/**
+ * @swagger
+ * /api/sell/createCustomer:
  *   post:
  *     summary: Create a new customer
  *     tags: [Sell]
@@ -66,125 +112,59 @@ router.post('/find_code', findCode);
  *             type: object
  *             required:
  *               - user
- *               - customer
+ *               - name
+ *               - phone
  *             properties:
  *               user:
  *                 type: object
- *                 properties:
- *                   id_owner:
- *                     type: string
- *                     description: The user's owner ID
- *               customer:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                     description: Customer name
- *                   phone:
- *                     type: string
- *                     description: Customer phone
- *     responses:
- *       200:
- *         description: Customer created successfully
- *       500:
- *         description: Server error
- */
-router.post('/create_customer', validateUserPermission("create_customer"), createCustomer);
-
-/**
- * @swagger
- * /api/sell/edit_customer:
- *   post:
- *     summary: Edit a customer
- *     tags: [Sell]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - user
- *               - customer
- *             properties:
- *               user:
- *                 type: object
- *                 properties:
- *                   id_owner:
- *                     type: string
- *                     description: The user's owner ID
- *               customer:
- *                 type: object
+ *                 required:
+ *                   - _id
+ *                   - id_owner
+ *                   - role
  *                 properties:
  *                   _id:
  *                     type: string
- *                     description: Customer ID
- *                   name:
- *                     type: string
- *                     description: Customer name
- *                   phone:
- *                     type: string
- *                     description: Customer phone
- *     responses:
- *       200:
- *         description: Customer updated successfully
- *       404:
- *         description: Customer not found
- *       500:
- *         description: Server error
- */
-router.post('/edit_customer', validateUserPermission("edit_customer"), editCustomer);
-
-/**
- * @swagger
- * /api/sell/delete_customer:
- *   post:
- *     summary: Delete a customer
- *     tags: [Sell]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - user
- *               - customer_delete
- *               - detail
- *             properties:
- *               user:
- *                 type: object
- *                 properties:
+ *                     description: User ID
  *                   id_owner:
  *                     type: string
- *                     description: The user's owner ID
- *                   _id:
+ *                     description: Owner ID
+ *                   role:
  *                     type: string
- *                     description: The user's ID
- *               customer_delete:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                     description: The customer's ID
- *               detail:
+ *                     description: User role
+ *               name:
  *                 type: string
- *                 description: Details about the deletion
+ *                 description: Customer name
+ *               email:
+ *                 type: string
+ *                 description: Customer email
+ *               phone:
+ *                 type: string
+ *                 description: Customer phone
  *     responses:
- *       200:
- *         description: Customer deleted successfully
- *       404:
- *         description: Customer not found
+ *       201:
+ *         description: Customer created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 customer:
+ *                   $ref: '#/components/schemas/Customer'
+ *                 message:
+ *                   type: string
+ *                   example: Tạo khách hàng thành công
+ *       400:
+ *         description: Phone number already registered
  *       500:
- *         description: Server error
+ *         description: Error creating customer
  */
-router.post('/delete_customer', validateUserPermission("delete_customer"), deleteCustomer);
+router.post('/createCustomer', validateUserPermission("create_customer"), createCustomer);
 
 /**
  * @swagger
  * /api/sell/history:
  *   post:
- *     summary: Create a new bill/transaction
+ *     summary: Create a new bill and update customer information
  *     tags: [Sell]
  *     requestBody:
  *       required: true
@@ -196,13 +176,26 @@ router.post('/delete_customer', validateUserPermission("delete_customer"), delet
  *               - owner
  *               - totalAmount
  *               - items
+ *               - creator
  *             properties:
  *               owner:
  *                 type: string
  *                 description: Owner ID
+ *               creator:
+ *                 type: object
+ *                 required:
+ *                   - _id
+ *                   - role
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Creator user ID
+ *                   role:
+ *                     type: string
+ *                     description: Creator user role
  *               customerId:
  *                 type: string
- *                 description: Customer phone number
+ *                 description: Customer phone number (optional)
  *               totalAmount:
  *                 type: string
  *                 description: Total amount of the bill
@@ -210,118 +203,65 @@ router.post('/delete_customer', validateUserPermission("delete_customer"), delet
  *                 type: array
  *                 items:
  *                   type: object
+ *                   required:
+ *                     - productID
+ *                     - name
+ *                     - quantity
+ *                     - price
  *                   properties:
  *                     productID:
  *                       type: string
  *                       description: Product ID
+ *                     name:
+ *                       type: string
+ *                       description: Product name
  *                     quantity:
  *                       type: number
- *                       description: Quantity of the product
+ *                       description: Quantity purchased
+ *                     price:
+ *                       type: string
+ *                       description: Product price
+ *                     discount:
+ *                       type: string
+ *                       description: Item discount (optional)
+ *                     totalAmount:
+ *                       type: string
+ *                       description: Item total amount (optional)
  *               paymentMethod:
  *                 type: string
- *                 description: Method of payment
+ *                 description: Payment method (optional)
  *               notes:
  *                 type: string
- *                 description: Additional notes
+ *                 description: Additional notes (optional)
  *               discount:
- *                 type: number
- *                 description: Discount amount
- *               vat:
- *                 type: number
- *                 description: VAT amount
- *               creator:
  *                 type: string
- *                 description: Creator ID
+ *                 description: Bill discount (optional)
+ *               vat:
+ *                 type: string
+ *                 description: VAT amount (optional)
  *     responses:
- *       200:
+ *       201:
  *         description: Bill created successfully
- *       404:
- *         description: Error creating bill
- *       500:
- *         description: Server error
- */
-router.post('/history', validateUserPermission("create_bill"), history);
-
-/**
- * @swagger
- * /api/sell/get_history:
- *   post:
- *     summary: Get transaction history for a user
- *     tags: [Sell]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - user
- *             properties:
- *               user:
- *                 type: object
- *                 properties:
- *                   id_owner:
- *                     type: string
- *                     description: The user's owner ID
- *     responses:
- *       200:
- *         description: List of transactions
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *       500:
- *         description: Server error
- */
-router.post('/get_history', getHistory);
-
-/**
- * @swagger
- * /api/sell/get_customer:
- *   post:
- *     summary: Get customers for a user
- *     tags: [Sell]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - user
- *             properties:
- *               user:
- *                 type: object
- *                 properties:
- *                   id_owner:
- *                     type: string
- *                     description: The user's owner ID
- *     responses:
- *       200:
- *         description: List of customers
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 customers:
- *                   type: array
- *                   items:
- *                     type: object
+ *                 bill:
+ *                   $ref: '#/components/schemas/Bill'
  *                 message:
  *                   type: string
+ *                   example: Tạo hóa đơn thành công
  *       500:
- *         description: Server error
+ *         description: Error creating bill
  */
-router.post('/get_customer', getCustomer);
+router.post('/history', validateUserPermission("create_bill"), history);
 
 /**
  * @swagger
- * /api/sell/get_history_customer:
+ * /api/sell/getHistory:
  *   post:
- *     summary: Get customer history for a user
+ *     summary: Get bill history for a specific user
  *     tags: [Sell]
  *     requestBody:
  *       required: true
@@ -334,13 +274,58 @@ router.post('/get_customer', getCustomer);
  *             properties:
  *               user:
  *                 type: object
+ *                 required:
+ *                   - id_owner
  *                 properties:
  *                   id_owner:
  *                     type: string
  *                     description: The user's owner ID
+ *                   role:
+ *                     type: string
+ *                     description: User role
  *     responses:
  *       200:
- *         description: List of customer history
+ *         description: List of formatted bills
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Bill'
+ *       500:
+ *         description: Error retrieving bill history
+ */
+router.post('/getHistory', getHistory);
+
+/**
+ * @swagger
+ * /api/sell/getHistoryCustomer:
+ *   post:
+ *     summary: Get customer change history
+ *     tags: [Sell]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 required:
+ *                   - id_owner
+ *                 properties:
+ *                   id_owner:
+ *                     type: string
+ *                     description: The user's owner ID
+ *                   role:
+ *                     type: string
+ *                     description: User role
+ *     responses:
+ *       200:
+ *         description: Customer change history
  *         content:
  *           application/json:
  *             schema:
@@ -356,7 +341,7 @@ router.post('/get_customer', getCustomer);
  *                       email:
  *                         type: string
  *                   customer:
- *                     type: object
+ *                     type: string
  *                   action:
  *                     type: string
  *                   timestamp:
@@ -365,8 +350,141 @@ router.post('/get_customer', getCustomer);
  *                   details:
  *                     type: string
  *       500:
+ *         description: Error retrieving customer history
+ */
+router.post('/getHistoryCustomer', getHistoryCustomer);
+
+/**
+ * @swagger
+ * /api/sell/editCustomer:
+ *   post:
+ *     summary: Edit a customer
+ *     tags: [Sell]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user
+ *               - customer_edit
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 required:
+ *                   - _id
+ *                   - id_owner
+ *                   - role
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: User ID
+ *                   id_owner:
+ *                     type: string
+ *                     description: Owner ID
+ *                   role:
+ *                     type: string
+ *                     description: User role
+ *               customer_edit:
+ *                 type: object
+ *                 required:
+ *                   - _id
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Customer ID
+ *                   name:
+ *                     type: string
+ *                     description: Customer name
+ *                   email:
+ *                     type: string
+ *                     description: Customer email
+ *                   phone:
+ *                     type: string
+ *                     description: Customer phone
+ *                   rate:
+ *                     type: number
+ *                     description: Customer purchase rate
+ *     responses:
+ *       200:
+ *         description: Customer updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: success
+ *       400:
+ *         description: Phone number already registered
+ *       404:
+ *         description: Customer not found
+ *       500:
  *         description: Server error
  */
-router.post('/get_history_customer', getHistoryCustomer);
+router.post('/editCustomer', validateUserPermission("edit_customer"), editCustomer);
+
+/**
+ * @swagger
+ * /api/sell/deleteCustomer:
+ *   post:
+ *     summary: Delete a customer
+ *     tags: [Sell]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user
+ *               - customer_delete
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 required:
+ *                   - _id
+ *                   - id_owner
+ *                   - role
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: User ID
+ *                   id_owner:
+ *                     type: string
+ *                     description: Owner ID
+ *                   role:
+ *                     type: string
+ *                     description: User role
+ *               customer_delete:
+ *                 type: object
+ *                 required:
+ *                   - _id
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Customer ID
+ *               detail:
+ *                 type: string
+ *                 description: Details of the delete action
+ *     responses:
+ *       200:
+ *         description: Customer deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: success
+ *       404:
+ *         description: Customer not found
+ *       500:
+ *         description: Server error
+ */
+router.post('/deleteCustomer', validateUserPermission("delete_customer"), deleteCustomer);
 
 module.exports = router;

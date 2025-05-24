@@ -36,7 +36,7 @@ const roleSchema = new Schema(
 
         id_owner: {
             type: mongoose.Schema.Types.ObjectId ,
-            ref:"Users",require:true
+            ref:"User",require:true
         },
     }
 );
