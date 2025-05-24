@@ -50,6 +50,7 @@ const roleRoutes = require('./routes/role');
 const sellRoutes = require('./routes/sell');
 const homeRoutes = require('./routes/home');
 const userRoutes = require('./routes/user');
+const profileRoutes = require('./routes/profile');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -61,6 +62,7 @@ app.use('/api/role', roleRoutes);
 app.use('/api/sell', sellRoutes);
 app.use('/api/home', homeRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/profile', profileRoutes);
 logger.info('All routes initialized');
 
 // Kiểm tra Route
