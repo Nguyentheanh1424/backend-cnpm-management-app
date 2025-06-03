@@ -13,6 +13,7 @@ const sendCodeMail = async (to, code, password = null) => {
     try {
         let emailText = `Mã xác thực của bạn là: ${code}.\nMã xác thực sẽ hết hạn trong vòng 10 phút.`;
 
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to,

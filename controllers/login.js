@@ -170,6 +170,7 @@ const resetPassword = async (req, res) => {
             });
         }
 
+
         // If not a registration, then it's a password reset
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: 'Email does not exist!' });
