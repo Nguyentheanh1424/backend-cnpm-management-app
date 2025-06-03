@@ -11,15 +11,15 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: "ntheanh0104@gmail.com", // Email của bạn
-        pass: "igimrjmnxgdywfon", // Mật khẩu ứng dụng
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
 });
 
 const sendEmail = async (to, subject, text) => {
     try {
         const mailOptions = {
-            from: "ntheanh0104@gmail.com",
+            from: process.env.EMAIL_USER,
             to: to,
             subject: subject,
             text: text,

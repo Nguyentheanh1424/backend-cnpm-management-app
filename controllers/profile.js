@@ -32,11 +32,11 @@ const getProfile = async (req, res) => {
 const changeProfile = async (req, res) => {
     try{
         const {user} = req.body;
-        const update_user = await users.findByIdAndUpdate(
-            {id_owner: user._id},
-            {$set: {name: user.name, password: user.password}},
-            {new: true}
-        )
+        const update_user = await users.findOneAndUpdate(
+            { id_owner: user._id },           // filter object
+            { name: user.name, password: user.password },
+            { new: true }
+        );
 
         if (!update_user) {
             return res.status(400).json({message: 'Change profile error'});

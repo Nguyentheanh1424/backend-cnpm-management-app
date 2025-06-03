@@ -125,6 +125,32 @@ const deletes = async (req, res) => {
     }
 };
 
+const updateDiscount = async (req, res) => {
+    const { user, product_id, discount, detail } = req.body;
+    try {
+        const product = await Product.findByIdAndUpdate(
+            product_id,
+            { discount },
+            { new: true, runValidators: true }
+        );
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        const history = new History({
+            owner: user.id_owner,
+            employee: user._id,
+            product: product.name,
+            action: 'update',
+            details: `${detail || 'Updated discount'} \ndiscount changed to ${discount}.`
+        });
+        await history.save();
+        res.json({ message: 'success' });
+    } catch (error) {
+        logger.error('Error updating discount:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // Get product details
 const showDetail = async (req, res) => {
     try {
@@ -462,6 +488,7 @@ module.exports = {
     show,
     edit,
     deletes,
+    updateDiscount,
     showDetail,
     create,
     getHistory,
