@@ -50,7 +50,7 @@ const productSchema = new Schema(
 
         supplier: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Suppliers',
+            ref: 'Supplier',
             required: true
         },
 
