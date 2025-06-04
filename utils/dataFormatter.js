@@ -68,14 +68,15 @@ const formatProduct = (product) => {
   return {
     _id: product._id,
     name: product.name,
-    description: product.description,
-    image: product.image,
-    purchasePrice: product.purchasePrice,
-    sellingPrice: product.sellingPrice,
-    sku: product.sku,
-    supplier: product.supplier,
-    stock_in_shelf: product.stock_in_shelf,
-    rate: product.rate
+    description: product.description || "",
+    image: product.image || {},
+    purchasePrice: product.purchasePrice || "",
+    sellingPrice: product.price || "", // Ánh xạ price sang sellingPrice
+    price: product.price || "", // Giữ nguyên price
+    sku: product.sku || "",
+    supplier: product.supplier || null,
+    stock_in_shelf: product.stock_in_shelf || 0,
+    rate: product.rate || 0
   };
 };
 
