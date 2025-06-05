@@ -1,6 +1,7 @@
 const users = require('../modules/user');
 const roles = require('../modules/role');
 const logger = require('../config/logger');
+const bcrypt = require("bcrypt");
 
 const getProfile = async (req, res) => {
     const {user} = req.body;
@@ -32,9 +33,12 @@ const getProfile = async (req, res) => {
 const changeProfile = async (req, res) => {
     try{
         const {user} = req.body;
+
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+
         const update_user = await users.findOneAndUpdate(
             { id_owner: user._id },           // filter object
-            { name: user.name, password: user.password },
+            { name: user.name, password: hashedPassword },
             { new: true }
         );
 
